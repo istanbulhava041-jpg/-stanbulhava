@@ -1,3 +1,54 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>İstanbul Hava Durumu Pro</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root { --bg-grad: linear-gradient(180deg, #4A90E2 0%, #87CEEB 100%); --card-bg: rgba(255, 255, 255, 0.2); --text-color: #fff; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
+        body { background: var(--bg-grad); background-attachment: fixed; min-height: 100vh; color: var(--text-color); display: flex; justify-content: center; padding: 20px; overflow-x: hidden; }
+        .container { width: 100%; max-width: 500px; z-index: 10; }
+        .selectors { display: flex; gap: 10px; margin-bottom: 20px; }
+        select { flex: 1; padding: 12px; border-radius: 12px; border: none; background: var(--card-bg); color: white; backdrop-filter: blur(10px); outline: none; font-size: 14px; cursor: pointer; }
+        select option { color: #333; }
+        .main-card { background: var(--card-bg); backdrop-filter: blur(15px); border-radius: 24px; padding: 30px; text-align: center; box-shadow: 0 8px 32px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        .temp-big { font-size: 72px; font-weight: 300; margin: 10px 0; }
+        .details-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-top: 20px; font-size: 14px; }
+        .detail-item { background: rgba(255,255,255,0.1); padding: 10px; border-radius: 12px; }
+        .chart-container { background: var(--card-bg); backdrop-filter: blur(15px); border-radius: 24px; padding: 20px; margin-bottom: 20px; }
+        .forecast-scroll { display: flex; gap: 15px; overflow-x: auto; padding-bottom: 10px; scrollbar-width: none; }
+        .forecast-scroll::-webkit-scrollbar { display: none; }
+        .forecast-item { min-width: 80px; background: var(--card-bg); padding: 15px; border-radius: 16px; text-align: center; }
+        #weather-anim { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1; }
+        .drop { position: absolute; background: rgba(255,255,255,0.6); width: 2px; height: 15px; animation: fall linear infinite; }
+        .snow { position: absolute; background: white; border-radius: 50%; width: 5px; height: 5px; animation: fall linear infinite; }
+        @keyframes fall { to { transform: translateY(100vh); } }
+    </style>
+</head>
+<body>
+<div id="weather-anim"></div>
+<div class="container">
+    <div class="selectors">
+        <select id="districts" onchange="updateNeighborhoods()"></select>
+        <select id="neighborhoods" onchange="fetchWeather()"></select>
+    </div>
+    <div class="main-card">
+        <h2 id="loc-name">Yükleniyor...</h2>
+        <div class="temp-big" id="current-temp">--°</div>
+        <p id="weather-desc">Durum</p>
+        <div class="details-grid">
+            <div class="detail-item">Hissedilen: <b id="feel-temp">--°</b></div>
+            <div class="detail-item">Nem: <b id="humidity">%--</b></div>
+            <div class="detail-item">Rüzgar: <b id="wind">-- km/s</b></div>
+            <div class="detail-item">UV: <b id="uv">--</b></div>
+        </div>
+    </div>
+    <div class="chart-container"><canvas id="hourlyChart"></canvas></div>
+    <div class="forecast-scroll" id="forecast"></div>
+</div>
 <script>
 const data = {
     "Adalar": {lat: 40.85, lon: 29.12, n: ["Burgazada", "Heybeliada", "Kınalıada", "Maden", "Nizam"]},
@@ -40,142 +91,16 @@ const data = {
     "Üsküdar": {lat: 41.02, lon: 29.01, n: ["Acıbadem", "Ahmediye", "Altunizade", "Aziz Mahmud Hüdayi", "Bahçelievler", "Barbaros", "Beylerbeyi", "Bulgurlu", "Burhaniye", "Cumhuriyet", "Çengelköy", "Ferah", "Güzeltepe", "İcladiye", "Kandilli", "Kuleli", "Kuzguncuk", "Küçük Çamlıca", "Küçüksu", "Kuleli", "Kirazlıtepe", "Mehmet Akif Ersoy", "Mimar Sinan", "Murat Reis", "Salacak", "Selami Ali", "Selimiye", "Sultantepe", "Ünalan", "Yavuztürk", "Zeynep Kamil"]},
     "Zeytinburnu": {lat: 40.99, lon: 28.90, n: ["Beştelsiz", "Çırpıcı", "Gökalp", "Kazlıçeşme", "Maltepe", "Merkezefendi", "Nuripaşa", "Seyitnizam", "Sümer", "Telsiz", "Veliefendi", "Yenidoğan", "Yeşiltepe"]}
 };
-
 let myChart;
-const districtSelect = document.getElementById('districts');
-const neighborhoodSelect = document.getElementById('neighborhoods');
-
-// Başlangıç
-window.onload = () => {
-    // İlçeleri alfabetik sıralayalım
-    const sortedDistricts = Object.keys(data).sort((a, b) => a.localeCompare(b, 'tr'));
-    
-    sortedDistricts.forEach(d => {
-        let opt = new Option(d, d);
-        districtSelect.add(opt);
-    });
-    updateNeighborhoods();
-};
-
-function updateNeighborhoods() {
-    const d = districtSelect.value;
-    neighborhoodSelect.innerHTML = '';
-    // Mahalleleri alfabetik sıralayalım
-    const sortedNeighborhoods = data[d].n.sort((a, b) => a.localeCompare(b, 'tr'));
-    
-    sortedNeighborhoods.forEach(nh => {
-        neighborhoodSelect.add(new Option(nh, nh));
-    });
-    fetchWeather();
-}
-
-async function fetchWeather() {
-    const d = districtSelect.value;
-    const {lat, lon} = data[d];
-    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m&hourly=temperature_2m&daily=weather_code,temperature_2m_max,temperature_2m_min,uv_index_max&timezone=Europe%2FIstanbul`;
-
-    try {
-        const res = await fetch(url);
-        if(!res.ok) throw new Error();
-        const json = await res.json();
-        updateUI(json);
-    } catch (e) {
-        alert("Hava durumu verisi şu an alınamıyor.");
-    }
-}
-
-function updateUI(json) {
-    const current = json.current;
-    document.getElementById('loc-name').innerText = `${neighborhoodSelect.value}, ${districtSelect.value}`;
-    document.getElementById('current-temp').innerText = `${Math.round(current.temperature_2m)}°`;
-    document.getElementById('feel-temp').innerText = `${Math.round(current.apparent_temperature)}°`;
-    document.getElementById('humidity').innerText = `%${current.relative_humidity_2m}`;
-    document.getElementById('wind').innerText = `${current.wind_speed_10m} km/s`;
-    document.getElementById('uv').innerText = json.daily.uv_index_max[0];
-    
-    const code = current.weather_code;
-    document.getElementById('weather-desc').innerText = getWeatherDesc(code);
-    
-    updateChart(json.hourly);
-    updateForecast(json.daily);
-    setAnimations(code);
-}
-
-function getWeatherDesc(code) {
-    if (code === 0) return "Açık Gökyüzü";
-    if (code <= 3) return "Parçalı Bulutlu";
-    if (code <= 48) return "Sisli";
-    if (code <= 67) return "Yağmurlu";
-    if (code <= 77) return "Kar Yağışlı";
-    if (code <= 82) return "Sağanak Yağış";
-    return "Fırtına";
-}
-
-function updateChart(hourly) {
-    const ctx = document.getElementById('hourlyChart').getContext('2d');
-    if (myChart) myChart.destroy();
-    
-    myChart = new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: hourly.time.slice(0, 24).map(t => t.split('T')[1]),
-            datasets: [{
-                label: 'Sıcaklık (°C)',
-                data: hourly.temperature_2m.slice(0, 24),
-                borderColor: '#fff',
-                backgroundColor: 'rgba(255,255,255,0.2)',
-                fill: true,
-                tension: 0.4
-            }]
-        },
-        options: {
-            responsive: true,
-            plugins: { legend: { display: false } },
-            scales: {
-                x: { ticks: { color: '#fff' }, grid: { display: false } },
-                y: { ticks: { color: '#fff' }, grid: { color: 'rgba(255,255,255,0.1)' } }
-            }
-        }
-    });
-}
-
-function updateForecast(daily) {
-    const container = document.getElementById('forecast');
-    container.innerHTML = '';
-    const emojis = {0: '☀️', 1: '🌤️', 2: '⛅', 3: '☁️', 45: '🌫️', 61: '🌧️', 71: '❄️', 95: '⛈️'};
-
-    for(let i=0; i<7; i++) {
-        const date = new Date(daily.time[i]).toLocaleDateString('tr', {weekday: 'short'});
-        const div = document.createElement('div');
-        div.className = 'forecast-item';
-        div.innerHTML = `
-            <div>${date}</div>
-            <div style="font-size:24px; margin:8px 0">${emojis[daily.weather_code[i]] || '☁️'}</div>
-            <b>${Math.round(daily.temperature_2m_max[i])}°</b>
-            <div style="font-size:12px; opacity:0.7">${Math.round(daily.temperature_2m_min[i])}°</div>
-        `;
-        container.appendChild(div);
-    }
-}
-
-function setAnimations(code) {
-    const container = document.getElementById('weather-anim');
-    container.innerHTML = '';
-    
-    let type = '';
-    if (code >= 51 && code <= 67 || code >= 80) type = 'drop';
-    if (code >= 71 && code <= 77) type = 'snow';
-
-    if (type) {
-        for (let i = 0; i < 50; i++) {
-            const el = document.createElement('div');
-            el.className = type;
-            el.style.left = Math.random() * 100 + 'vw';
-            el.style.animationDuration = (Math.random() * 1 + 0.5) + 's';
-            el.style.animationDelay = Math.random() * 2 + 's';
-            container.appendChild(el);
-        }
-    }
-}
-                                            </script>
-                                            
+const ds=document.getElementById('districts'), ns=document.getElementById('neighborhoods');
+window.onload=()=>{Object.keys(data).sort((a,b)=>a.localeCompare(b,'tr')).forEach(d=>ds.add(new Option(d,d)));updateNeighborhoods();};
+function updateNeighborhoods(){const d=ds.value;ns.innerHTML='';data[d].n.sort((a,b)=>a.localeCompare(b,'tr')).forEach(nh=>ns.add(new Option(nh,nh)));fetchWeather();}
+async function fetchWeather(){const d=ds.value,{lat,lon}=data[d];try{const r=await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m&hourly=temperature_2m&daily=weather_code,temperature_2m_max,temperature_2m_min,uv_index_max&timezone=Europe%2FIstanbul`);if(!r.ok)throw new Error();const j=await r.json();updateUI(j);}catch(e){alert("Hata!");}}
+function updateUI(j){const c=j.current;document.getElementById('loc-name').innerText=`${ns.value}, ${ds.value}`;document.getElementById('current-temp').innerText=`${Math.round(c.temperature_2m)}°`;document.getElementById('feel-temp').innerText=`${Math.round(c.apparent_temperature)}°`;document.getElementById('humidity').innerText=`%${c.relative_humidity_2m}`;document.getElementById('wind').innerText=`${c.wind_speed_10m} km/s`;document.getElementById('uv').innerText=j.daily.uv_index_max[0];document.getElementById('weather-desc').innerText=getW(c.weather_code);upC(j.hourly);upF(j.daily);setA(c.weather_code);}
+function getW(c){if(c==0)return "Açık";if(c<=3)return "Bulutlu";if(c<=48)return "Sisli";if(c<=67)return "Yağmurlu";if(c<=77)return "Kar Yağışlı";return "Fırtına";}
+function upC(h){const ctx=document.getElementById('hourlyChart').getContext('2d');if(myChart)myChart.destroy();myChart=new Chart(ctx,{type:'line',data:{labels:h.time.slice(0,24).map(t=>t.split('T')[1]),datasets:[{data:h.temperature_2m.slice(0,24),borderColor:'#fff',fill:true,tension:0.4}]},options:{plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#fff'}},y:{ticks:{color:'#fff'}}}}});}
+function upF(d){const f=document.getElementById('forecast');f.innerHTML='';const e={0:'☀️',1:'🌤️',2:'⛅',3:'☁️',45:'🌫️',61:'🌧️',71:'❄️',95:'⛈️'};for(let i=0;i<7;i++){const div=document.createElement('div');div.className='forecast-item';div.innerHTML=`<div>${new Date(d.time[i]).toLocaleDateString('tr',{weekday:'short'})}</div><div style="font-size:24px">${e[d.weather_code[i]]||'☁️'}</div><b>${Math.round(d.temperature_2m_max[i])}°</b>`;f.appendChild(div);}}
+function setA(c){const a=document.getElementById('weather-anim');a.innerHTML='';let t=(c>=51&&c<=67||c>=80)?'drop':(c>=71&&c<=77?'snow':'');if(t){for(let i=0;i<50;i++){const d=document.createElement('div');d.className=t;d.style.left=Math.random()*100+'vw';d.style.animationDuration=(Math.random()+0.5)+'s';a.appendChild(d);}}}
+</script>
+</body>
+</html>
