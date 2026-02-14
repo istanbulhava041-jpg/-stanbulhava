@@ -3,116 +3,70 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>İstanbul Mega Dashboard</title>
-    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300;500;700&display=swap" rel="stylesheet">
+    <title>İstanbul Canlı Rehber</title>
     <style>
-        * { box-sizing: border-box; }
-        body {
-            margin: 0;
-            font-family: 'Quicksand', sans-serif;
-            background: #000428;
-            background: linear-gradient(to right, #004e92, #000428);
-            color: white;
-            padding: 20px;
-        }
-        .container { max-width: 1200px; margin: 0 auto; }
-        h1 { text-align: center; font-size: 3.5rem; text-transform: uppercase; letter-spacing: 5px; margin-bottom: 10px; color: #00d2ff; }
-        
-        /* 7 GÜNLÜK HAVA DURUMU */
-        .weather-7day {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
-            gap: 15px;
-            margin-bottom: 40px;
-        }
-        .day-card {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            padding: 15px;
-            border-radius: 15px;
-            text-align: center;
-            border: 1px solid rgba(255,255,255,0.2);
-        }
-        .day-card h4 { margin: 5px 0; color: #00d2ff; }
-        .temp-big { font-size: 1.5rem; font-weight: bold; }
-
-        /* İLÇELER IZGARASI */
-        .districts-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 20px;
-        }
-        .district-item {
-            background: rgba(0, 0, 0, 0.4);
-            border-radius: 20px;
-            padding: 20px;
-            border-bottom: 4px solid #00d2ff;
-            transition: 0.3s;
-        }
-        .district-item:hover { transform: scale(1.03); background: rgba(0, 0, 0, 0.6); }
-        .district-item h3 { margin: 0 0 10px 0; color: #00d2ff; border-bottom: 1px solid #333; padding-bottom: 5px; }
-        .m-list { font-size: 0.85rem; color: #ccc; line-height: 1.4; }
+        :root { --p: #00d2ff; --bg: #050a14; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: white; display: flex; justify-content: center; padding: 20px; margin: 0; }
+        .card { background: rgba(255,255,255,0.05); backdrop-filter: blur(15px); padding: 30px; border-radius: 25px; width: 100%; max-width: 500px; border: 1px solid rgba(255,255,255,0.1); text-align: center; }
+        h1 { color: var(--p); letter-spacing: 2px; }
+        .weather-now { font-size: 1.2rem; margin-bottom: 30px; padding: 15px; background: rgba(0,0,0,0.3); border-radius: 15px; border-left: 4px solid var(--p); }
+        select { width: 100%; padding: 12px; margin: 10px 0; border-radius: 10px; border: none; background: #1e293b; color: white; font-size: 1rem; outline: none; }
+        #mahalle-box { display: none; margin-top: 10px; }
+        .info-text { margin-top: 20px; color: #888; font-size: 0.9rem; }
     </style>
 </head>
 <body>
+    <div class="card">
+        <h1>İSTANBUL</h1>
+        <div class="weather-now" id="anlik-hava">Yükleniyor...</div>
 
-<div class="container">
-    <h1>İstanbul</h1>
-    <p style="text-align:center; margin-bottom:30px;">7 Günlük Tahmin & Tüm İlçeler Rehberi</p>
+        <select id="ilce-sec" onchange="ilceDegisti()">
+            <option value="">İlçe Seçiniz</option>
+            <option value="besiktas">Beşiktaş</option>
+            <option value="kadikoy">Kadıköy</option>
+            <option value="uskudar">Üsküdar</option>
+            <option value="sisli">Şişli</option>
+        </select>
 
-    <div class="weather-7day">
-        <div class="day-card"><h4>Pzt</h4><span>☀️</span><div class="temp-big">14°C</div></div>
-        <div class="day-card"><h4>Sal</h4><span>⛅</span><div class="temp-big">13°C</div></div>
-        <div class="day-card"><h4>Çar</h4><span>☁️</span><div class="temp-big">11°C</div></div>
-        <div class="day-card"><h4>Per</h4><span>🌧️</span><div class="temp-big">9°C</div></div>
-        <div class="day-card"><h4>Cum</h4><span>🌧️</span><div class="temp-big">8°C</div></div>
-        <div class="day-card"><h4>Cmt</h4><span>⛅</span><div class="temp-big">10°C</div></div>
-        <div class="day-card"><h4>Paz</h4><span>☀️</span><div class="temp-big">12°C</div></div>
+        <div id="mahalle-box">
+            <select id="mahalle-sec">
+                <option value="">Önce İlçe Seçin</option>
+            </select>
+        </div>
+
+        <p class="info-text">Seçtiğiniz konuma göre anlık veriler işlenir.</p>
     </div>
 
-    <div class="districts-grid">
-        <div class="district-item"><h3>Adalar</h3><p class="m-list">Büyükada, Heybeliada, Burgazada, Kınalıada</p></div>
-        <div class="district-item"><h3>Arnavutköy</h3><p class="m-list">Hadımköy, Haraççı, Bolluca, Taşoluk</p></div>
-        <div class="district-item"><h3>Ataşehir</h3><p class="m-list">İçerenköy, Kayışdağı, Küçükbakkalköy, Barbaros</p></div>
-        <div class="district-item"><h3>Avcılar</h3><p class="m-list">Ambarlı, Cihangir, Denizköşkler, Firuzköy</p></div>
-        <div class="district-item"><h3>Bağcılar</h3><p class="m-list">Güneşli, Mahmutbey, Kirazlı, Hürriyet</p></div>
-        <div class="district-item"><h3>Bahçelievler</h3><p class="m-list">Yenibosna, Kocasinan, Şirinevler, Soğanlı</p></div>
-        <div class="district-item"><h3>Bakırköy</h3><p class="m-list">Yeşilköy, Florya, Ataköy, Kartaltepe</p></div>
-        <div class="district-item"><h3>Başakşehir</h3><p class="m-list">Bahçeşehir, Kayaşehir, Altınşehir, Güvercintepe</p></div>
-        <div class="district-item"><h3>Bayrampaşa</h3><p class="m-list">Yıldırım, Kartaltepe, Cevatpaşa, Altıntepsi</p></div>
-        <div class="district-item"><h3>Beşiktaş</h3><p class="m-list">Bebek, Etiler, Levent, Ortaköy, Gayrettepe</p></div>
-        <div class="district-item"><h3>Beykoz</h3><p class="m-list">Kavacık, Kanlıca, Paşabahçe, Anadolu Hisarı</p></div>
-        <div class="district-item"><h3>Beylikdüzü</h3><p class="m-list">Adnan Kahveci, Barış, Gürpınar, Yakuplu</p></div>
-        <div class="district-item"><h3>Beyoğlu</h3><p class="m-list">Galata, Cihangir, Karaköy, Taksim, Sütlüce</p></div>
-        <div class="district-item"><h3>Büyükçekmece</h3><p class="m-list">Mimaroba, Sinanoba, Kumburgaz, Kamiloba</p></div>
-        <div class="district-item"><h3>Çatalca</h3><p class="m-list">Kaleici, Ferhatpaşa, Binkılıç, Çiftlikköy</p></div>
-        <div class="district-item"><h3>Çekmeköy</h3><p class="m-list">Alemdağ, Taşdelen, Ömerli, Aydınlar</p></div>
-        <div class="district-item"><h3>Esenler</h3><p class="m-list">Turgutreis, Oruçreis, Tuna, Fatih</p></div>
-        <div class="district-item"><h3>Esenyurt</h3><p class="m-list">Saadetdere, Kıraç, Mehterçeşme, Piri Reis</p></div>
-        <div class="district-item"><h3>Eyüpsultan</h3><p class="m-list">Göktürk, Kemerburgaz, Alibeyköy, Nişanca</p></div>
-        <div class="district-item"><h3>Fatih</h3><p class="m-list">Balat, Sultanahmet, Aksaray, Kocamustafapaşa</p></div>
-        <div class="district-item"><h3>Gaziosmanpaşa</h3><p class="m-list">Bağlarbaşı, Karadeniz, Mevlana, Yıldıztabya</p></div>
-        <div class="district-item"><h3>Güngören</h3><p class="m-list">Merter, Haznedar, Tozkoparan, Akıncılar</p></div>
-        <div class="district-item"><h3>Kadıköy</h3><p class="m-list">Moda, Caddebostan, Suadiye, Erenköy, Göztepe</p></div>
-        <div class="district-item"><h3>Kağıthane</h3><p class="m-list">Çeliktepe, Gültepe, Seyrantepe, Hamidiye</p></div>
-        <div class="district-item"><h3>Kartal</h3><p class="m-list">Dragos, Yakacık, Soğanlık, Uğur Mumcu</p></div>
-        <div class="district-item"><h3>Küçükçekmece</h3><p class="m-list">Halkalı, İkitelli, Kanarya, Cennet</p></div>
-        <div class="district-item"><h3>Maltepe</h3><p class="m-list">Küçükyalı, İdealtepe, Zümrütevler, Başıbüyük</p></div>
-        <div class="district-item"><h3>Pendik</h3><p class="m-list">Kurtköy, Kaynarca, Güzelyalı, Yenişehir</p></div>
-        <div class="district-item"><h3>Sancaktepe</h3><p class="m-list">Samandıra, Sarıgazi, Yenidoğan, Abdurrahmangazi</p></div>
-        <div class="district-item"><h3>Sarıyer</h3><p class="m-list">Tarabya, İstinye, Emirgan, Zekeriyaköy, Kilyos</p></div>
-        <div class="district-item"><h3>Silivri</h3><p class="m-list">Selimpaşa, Gümüşyaka, Ortaköy, Kavaklı</p></div>
-        <div class="district-item"><h3>Sultanbeyli</h3><p class="m-list">Abdurrahmangazi, Hamidiye, Mecidiye, Yavuz Selim</p></div>
-        <div class="district-item"><h3>Sultangazi</h3><p class="m-list">Habipler, Cebeci, Yunus Emre, Gazi</p></div>
-        <div class="district-item"><h3>Şile</h3><p class="m-list">Ağva, Kumbaba, Çavuş, Balibey</p></div>
-        <div class="district-item"><h3>Şişli</h3><p class="m-list">Nişantaşı, Mecidiyeköy, Bomonti, Feriköy</p></div>
-        <div class="district-item"><h3>Tuzla</h3><p class="m-list">Aydınlı, İçmeler, Akfırat, Postane</p></div>
-        <div class="district-item"><h3>Ümraniye</h3><p class="m-list">Çakmak, Ihlamurkuyu, Dudullu, Şerifali</p></div>
-        <div class="district-item"><h3>Üsküdar</h3><p class="m-list">Çengelköy, Kuzguncuk, Kandilli, Beylerbeyi</p></div>
-        <div class="district-item"><h3>Zeytinburnu</h3><p class="m-list">Merkezefendi, Telsiz, Beştelsiz, Çırpıcı</p></div>
-    </div>
-</div>
+    <script>
+        const veriler = {
+            besiktas: ["Bebek", "Etiler", "Ortaköy", "Levent"],
+            kadikoy: ["Moda", "Caddebostan", "Suadiye", "Erenköy"],
+            uskudar: ["Kuzguncuk", "Çengelköy", "Beylerbeyi", "Kandilli"],
+            sisli: ["Nişantaşı", "Mecidiyeköy", "Bomonti", "Feriköy"]
+        };
 
+        // Anlık Saat ve Hava Durumu Simülasyonu
+        function havaGuncelle() {
+            const temp = Math.floor(Math.random() * (15 - 8) + 8);
+            document.getElementById('anlik-hava').innerHTML = `📍 İstanbul: ${temp}°C <br> <small>Anlık Durum: Parçalı Bulutlu</small>`;
+        }
+        havaGuncelle();
+
+        function ilceDegisti() {
+            const ilce = document.getElementById("ilce-sec").value;
+            const mBox = document.getElementById("mahalle-box");
+            const mSec = document.getElementById("mahalle-sec");
+            
+            if(ilce) {
+                mSec.innerHTML = '<option value="">Mahalle Seçiniz</option>';
+                veriler[ilce].forEach(m => {
+                    mSec.innerHTML += `<option value="${m}">${m}</option>`;
+                });
+                mBox.style.display = "block";
+            } else {
+                mBox.style.display = "none";
+            }
+        }
+    </script>
 </body>
-    </html>
-                                                       
+</html>
