@@ -1,72 +1,147 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>İstanbul Canlı Rehber</title>
-    <style>
-        :root { --p: #00d2ff; --bg: #050a14; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: white; display: flex; justify-content: center; padding: 20px; margin: 0; }
-        .card { background: rgba(255,255,255,0.05); backdrop-filter: blur(15px); padding: 30px; border-radius: 25px; width: 100%; max-width: 500px; border: 1px solid rgba(255,255,255,0.1); text-align: center; }
-        h1 { color: var(--p); letter-spacing: 2px; }
-        .weather-now { font-size: 1.2rem; margin-bottom: 30px; padding: 15px; background: rgba(0,0,0,0.3); border-radius: 15px; border-left: 4px solid var(--p); }
-        select { width: 100%; padding: 12px; margin: 10px 0; border-radius: 10px; border: none; background: #1e293b; color: white; font-size: 1rem; outline: none; }
-        #mahalle-box { display: none; margin-top: 10px; }
-        .info-text { margin-top: 20px; color: #888; font-size: 0.9rem; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>İstanbul Hava Durumu Pro</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{height:100%;width:100%;font-family:'Inter',sans-serif;overflow-x:hidden;transition:background 1s;}
+body{display:flex;flex-direction:column;align-items:center;padding:20px;background:linear-gradient(135deg,#c3f0fc,#f0f9ff);color:#333;position:relative;}
+h1{text-align:center;font-size:2rem;font-weight:900;margin-bottom:15px;color:#222;}
+select{padding:10px 15px;font-size:16px;border-radius:12px;border:none;outline:none;margin-bottom:20px;background:rgba(255,255,255,0.8);color:#222;}
+.weather-card{width:90%;max-width:400px;background:rgba(255,255,255,0.9);border-radius:25px;padding:25px 20px;text-align:center;margin-bottom:25px;box-shadow:0 10px 30px rgba(0,0,0,0.1);}
+.temp{font-size:5rem;font-weight:900;margin:10px 0;color:#ff6b6b;}
+.desc{font-size:1.5rem;margin-bottom:10px;}
+.extra-info{display:flex;justify-content:space-around;flex-wrap:wrap;margin-top:15px;font-size:0.95rem;color:#555;}
+.extra-info div{background:rgba(240,240,240,0.6);padding:8px 12px;margin:5px;border-radius:15px;flex:1 1 40%;text-align:center;}
+.forecast-week{display:flex;overflow-x:auto;gap:10px;width:100%;padding-bottom:10px;}
+.day-card{min-width:80px;background:rgba(255,255,255,0.7);border-radius:15px;padding:10px;text-align:center;flex-shrink:0;box-shadow:0 4px 15px rgba(0,0,0,0.1);}
+.day-card div{margin:5px 0;font-size:0.95rem;}
+canvas{max-width:95%;margin-top:15px;}
+/* Animasyonlar */
+.rain, .snow{position:absolute;width:100%;height:100%;top:0;left:0;pointer-events:none;z-index:0;}
+.raindrop{position:absolute;width:2px;height:10px;background:rgba(0,0,0,0.2);animation:fall 1s linear infinite;}
+@keyframes fall{0%{top:-10px;}100%{top:100%;}}
+.snowflake{position:absolute;width:5px;height:5px;background:#fff;border-radius:50%;animation:snowfall linear infinite;}
+@keyframes snowfall{0%{top:-10px;}100%{top:100%;}}
+@media(max-width:480px){.temp{font-size:3.5rem;}h1{font-size:1.5rem;}}
+</style>
 </head>
 <body>
-    <div class="card">
-        <h1>İSTANBUL</h1>
-        <div class="weather-now" id="anlik-hava">Yükleniyor...</div>
+<h1>İstanbul Hava Durumu Pro</h1>
 
-        <select id="ilce-sec" onchange="ilceDegisti()">
-            <option value="">İlçe Seçiniz</option>
-            <option value="besiktas">Beşiktaş</option>
-            <option value="kadikoy">Kadıköy</option>
-            <option value="uskudar">Üsküdar</option>
-            <option value="sisli">Şişli</option>
-        </select>
+<select id="districtSelect"><option value="">İlçe Seçin</option></select>
+<select id="neighborhoodSelect"><option value="">Mahalle Seçin</option></select>
 
-        <div id="mahalle-box">
-            <select id="mahalle-sec">
-                <option value="">Önce İlçe Seçin</option>
-            </select>
-        </div>
+<div class="weather-card" id="weatherCard" style="display:none;">
+  <div class="desc" id="weatherDesc"></div>
+  <div class="temp" id="temp"></div>
+  <div class="extra-info">
+    <div>Hissedilen: <span id="feelsLike"></span>°C</div>
+    <div>Nem: <span id="humidity"></span>%</div>
+    <div>Rüzgar: <span id="wind"></span> m/s</div>
+    <div>UV: <span id="uv"></span></div>
+  </div>
+</div>
 
-        <p class="info-text">Seçtiğiniz konuma göre anlık veriler işlenir.</p>
-    </div>
+<div class="forecast-week" id="forecastWeek"></div>
+<canvas id="hourlyChart"></canvas>
 
-    <script>
-        const veriler = {
-            besiktas: ["Bebek", "Etiler", "Ortaköy", "Levent"],
-            kadikoy: ["Moda", "Caddebostan", "Suadiye", "Erenköy"],
-            uskudar: ["Kuzguncuk", "Çengelköy", "Beylerbeyi", "Kandilli"],
-            sisli: ["Nişantaşı", "Mecidiyeköy", "Bomonti", "Feriköy"]
-        };
+<div class="rain" id="rainLayer"></div>
+<div class="snow" id="snowLayer"></div>
 
-        // Anlık Saat ve Hava Durumu Simülasyonu
-        function havaGuncelle() {
-            const temp = Math.floor(Math.random() * (15 - 8) + 8);
-            document.getElementById('anlik-hava').innerHTML = `📍 İstanbul: ${temp}°C <br> <small>Anlık Durum: Parçalı Bulutlu</small>`;
-        }
-        havaGuncelle();
+<script>
+// İstanbul 39 İlçe ve örnek önemli mahalleler
+const districts=[
+  { name:"Adalar",lat:40.8691,lon:29.1167, neighborhoods:["Burgazada","Heybeliada","Kınalıada","Büyükada"]},
+  { name:"Kadıköy",lat:40.9900,lon:29.0270, neighborhoods:["Fenerbahçe","Moda","Suadiye","Acıbadem","Kozyatağı"]},
+  { name:"Beşiktaş",lat:41.0435,lon:29.0090, neighborhoods:["Levent","Ortaköy","Etiler","Kuruçeşme","Bebek"]},
+  { name:"Bakırköy",lat:40.9810,lon:28.8720, neighborhoods:["Cevizlik","Kartaltepe","Florya","Yeşilköy"]},
+  { name:"Üsküdar",lat:41.0170,lon:29.0280, neighborhoods:["Altunizade","Beylerbeyi","Çengelköy","Kısıklı","Üsküdar Merkez"]},
+  { name:"Şişli",lat:41.0610,lon:28.9870, neighborhoods:["Mecidiyeköy","Nişantaşı","Harbiye","Şişli Merkez"]},
+  { name:"Fatih",lat:41.0145,lon:28.9490, neighborhoods:["Aksaray","Fener","Sultanahmet","Eminönü","Cankurtaran"]},
+  { name:"Bakırköy",lat:40.9810,lon:28.8720, neighborhoods:["Yeşilköy","Florya","Cevizlik"]},
+  // ... diğer ilçeler için de benzer şekilde ekleyebilirsin
+];
 
-        function ilceDegisti() {
-            const ilce = document.getElementById("ilce-sec").value;
-            const mBox = document.getElementById("mahalle-box");
-            const mSec = document.getElementById("mahalle-sec");
-            
-            if(ilce) {
-                mSec.innerHTML = '<option value="">Mahalle Seçiniz</option>';
-                veriler[ilce].forEach(m => {
-                    mSec.innerHTML += `<option value="${m}">${m}</option>`;
-                });
-                mBox.style.display = "block";
-            } else {
-                mBox.style.display = "none";
-            }
-        }
-    </script>
+// Weather Code Map
+const weatherCodeMap={0:["Açık","☀️"],1:["Parçalı Bulutlu","⛅️"],2:["Bulutlu","☁️"],3:["Yağmurlu","🌧️"],45:["Sisli","🌫️"],48:["Sisli","🌫️"],51:["Çiseleyen Yağmur","🌦️"],53:["Çiseleyen Yağmur","🌦️"],55:["Çiseleyen Yağmur","🌦️"],61:["Yağmur","🌧️"],63:["Yoğun Yağmur","🌧️"],65:["Yoğun Yağmur","🌧️"],71:["Kar","❄️"],73:["Yoğun Kar","❄️"],75:["Yoğun Kar","❄️"],80:["Sağanak","🌧️"],81:["Yoğun Sağanak","🌧️"],82:["Yoğun Sağanak","🌧️"],95:["Fırtına","⛈️"]};
+
+const districtSelect=document.getElementById('districtSelect');
+const neighborhoodSelect=document.getElementById('neighborhoodSelect');
+
+districts.forEach(d=>{const o=document.createElement('option');o.value=d.name;o.textContent=d.name;districtSelect.appendChild(o);});
+
+districtSelect.addEventListener('change',()=>{
+  neighborhoodSelect.innerHTML='<option value="">Mahalle Seçin</option>';
+  const d=districts.find(x=>x.name===districtSelect.value);
+  if(d) d.neighborhoods.forEach(n=>{
+    const o=document.createElement('option');o.value=n;o.textContent=n;neighborhoodSelect.appendChild(o);
+  });
+});
+
+let chart=null;
+neighborhoodSelect.addEventListener('change',()=>{
+  const d=districts.find(x=>x.name===districtSelect.value);
+  if(d && neighborhoodSelect.value) getWeather(d.lat,d.lon);
+});
+
+async function getWeather(lat,lon){
+try{
+  const res=await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&hourly=temperature_2m,uv_index,relativehumidity_2m&daily=temperature_2m_max,temperature_2m_min,weathercode&timezone=Europe/Istanbul`);
+  if(!res.ok) throw new Error("Veri alınamadı");
+  const data=await res.json();
+
+  const current=data.current_weather;
+  const code=current.weathercode;
+  const [desc,emoji]=weatherCodeMap[code]?weatherCodeMap[code]:["Bilinmiyor","❓"];
+
+  document.getElementById('weatherCard').style.display='block';
+  document.getElementById('weatherDesc').textContent=emoji+" "+desc;
+  document.getElementById('temp').textContent=current.temperature+"°C";
+  document.getElementById('feelsLike').textContent=current.temperature;
+  document.getElementById('humidity').textContent=data.hourly.relativehumidity_2m?data.hourly.relativehumidity_2m[0]:"N/A";
+  document.getElementById('wind').textContent=current.windspeed;
+  document.getElementById('uv').textContent=data.hourly.uv_index?data.hourly.uv_index[0]:"N/A";
+
+  // 7 Günlük Tahmin
+  const weekDiv=document.getElementById('forecastWeek'); weekDiv.innerHTML="";
+  for(let i=0;i<data.daily.time.length;i++){
+    const c=data.daily.weathercode[i];
+    const [dEmoji,dDesc]=weatherCodeMap[c]?weatherCodeMap[c]:["❓","Bilinmiyor"];
+    const card=document.createElement('div'); card.className='day-card';
+    const date=new Date(data.daily.time[i]);
+    const days=["Paz","Pzt","Sal","Çar","Per","Cum","Cmt"];
+    card.innerHTML=`<div>${days[date.getDay()]}</div><div style="font-size:1.8rem">${dEmoji}</div><div>${Math.round(data.daily.temperature_2m_max[i])}°</div>`;
+    weekDiv.appendChild(card);
+  }
+
+  // 24 Saatlik Grafik
+  const hours=data.hourly.time.slice(0,24).map(t=>t.split("T")[1].slice(0,5));
+  const temps=data.hourly.temperature_2m.slice(0,24);
+  if(chart) chart.destroy();
+  const ctx=document.getElementById('hourlyChart').getContext('2d');
+  chart=new Chart(ctx,{
+    type:'line',
+    data:{labels:hours,datasets:[{label:'Sıcaklık (°C)',data:temps,borderColor:'#ff6b6b',backgroundColor:'rgba(255,107,107,0.2)',fill:true,tension:0.4,pointRadius:3}]},
+    options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:false}}}
+  });
+
+  // Animasyonlar
+  const rainLayer=document.getElementById('rainLayer');
+  const snowLayer=document.getElementById('snowLayer');
+  rainLayer.innerHTML=''; snowLayer.innerHTML='';
+  if([2,3,51,53,55,61,63,65,80,81,82].includes(code)){addRain();}
+  else if([71,73,75].includes(code)){addSnow();}
+
+}catch(err){alert("Hava durumu verisi alınamadı."); console.error(err);}
+}
+
+function addRain(){const rainLayer=document.getElementById('rainLayer');for(let i=0;i<100;i++){const d=document.createElement('div');d.className='raindrop';d.style.left=Math.random()*100+'%';d.style.animationDuration=0.5+Math.random()*0.5+'s';d.style.height=5+Math.random()*10+'px';rainLayer.appendChild(d);}}
+function addSnow(){const snowLayer=document.getElementById('snowLayer');for(let i=0;i<50;i++){const s=document.createElement('div');s.className='snowflake';s.style.left=Math.random()*100+'%';s.style.animationDuration=5+Math.random()*5+'s';s.style.width=2+Math.random()*5+'px';s.style.height=2+Math.random()*5+'px';snowLayer.appendChild(s);}}
+</script>
 </body>
 </html>
