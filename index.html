@@ -21,7 +21,6 @@ select{padding:10px 15px;font-size:16px;border-radius:12px;border:none;outline:n
 .day-card{min-width:80px;background:rgba(255,255,255,0.7);border-radius:15px;padding:10px;text-align:center;flex-shrink:0;box-shadow:0 4px 15px rgba(0,0,0,0.1);}
 .day-card div{margin:5px 0;font-size:0.95rem;}
 canvas{max-width:95%;margin-top:15px;}
-/* Animasyonlar */
 .rain, .snow{position:absolute;width:100%;height:100%;top:0;left:0;pointer-events:none;z-index:0;}
 .raindrop{position:absolute;width:2px;height:10px;background:rgba(0,0,0,0.2);animation:fall 1s linear infinite;}
 @keyframes fall{0%{top:-10px;}100%{top:100%;}}
@@ -54,17 +53,47 @@ canvas{max-width:95%;margin-top:15px;}
 <div class="snow" id="snowLayer"></div>
 
 <script>
-// İstanbul 39 İlçe ve örnek önemli mahalleler
+// İstanbul 39 ilçe ve önemli mahalleler
 const districts=[
-  { name:"Adalar",lat:40.8691,lon:29.1167, neighborhoods:["Burgazada","Heybeliada","Kınalıada","Büyükada"]},
-  { name:"Kadıköy",lat:40.9900,lon:29.0270, neighborhoods:["Fenerbahçe","Moda","Suadiye","Acıbadem","Kozyatağı"]},
-  { name:"Beşiktaş",lat:41.0435,lon:29.0090, neighborhoods:["Levent","Ortaköy","Etiler","Kuruçeşme","Bebek"]},
-  { name:"Bakırköy",lat:40.9810,lon:28.8720, neighborhoods:["Cevizlik","Kartaltepe","Florya","Yeşilköy"]},
-  { name:"Üsküdar",lat:41.0170,lon:29.0280, neighborhoods:["Altunizade","Beylerbeyi","Çengelköy","Kısıklı","Üsküdar Merkez"]},
-  { name:"Şişli",lat:41.0610,lon:28.9870, neighborhoods:["Mecidiyeköy","Nişantaşı","Harbiye","Şişli Merkez"]},
-  { name:"Fatih",lat:41.0145,lon:28.9490, neighborhoods:["Aksaray","Fener","Sultanahmet","Eminönü","Cankurtaran"]},
-  { name:"Bakırköy",lat:40.9810,lon:28.8720, neighborhoods:["Yeşilköy","Florya","Cevizlik"]},
-  // ... diğer ilçeler için de benzer şekilde ekleyebilirsin
+{ name:"Adalar",lat:40.8691,lon:29.1167, neighborhoods:["Burgazada","Heybeliada","Kınalıada","Büyükada"]},
+{ name:"Arnavutköy",lat:41.2000,lon:28.7280, neighborhoods:["Haraççı","Hadımköy","Deliklikaya"]},
+{ name:"Ataşehir",lat:40.9850,lon:29.1190, neighborhoods:["Mevlana","İçerenköy","Kayışdağı","Yenişehir"]},
+{ name:"Avcılar",lat:40.9787,lon:28.7886, neighborhoods:["Merkez","Firuzköy","Ambarlı","Cihangir"]},
+{ name:"Bağcılar",lat:41.0530,lon:28.8200, neighborhoods:["Göztepe","Kirazlı","Yenidoğan"]},
+{ name:"Bahçelievler",lat:40.9900,lon:28.8740, neighborhoods:["Şirinevler","Bahçelievler Merkez","Kocasinan"]},
+{ name:"Bakırköy",lat:40.9810,lon:28.8720, neighborhoods:["Cevizlik","Florya","Yeşilköy"]},
+{ name:"Başakşehir",lat:41.0810,lon:28.8050, neighborhoods:["Başakşehir 1","Başakşehir 2","Başakşehir 3"]},
+{ name:"Bayrampaşa",lat:41.0360,lon:28.8920, neighborhoods:["Kocatepe","Yıldırım","Kartaltepe"]},
+{ name:"Beşiktaş",lat:41.0435,lon:29.0090, neighborhoods:["Levent","Ortaköy","Etiler","Bebek"]},
+{ name:"Beykoz",lat:41.1635,lon:29.0690, neighborhoods:["Çavuşbaşı","Anadolu Hisarı","Riva"]},
+{ name:"Beylikdüzü",lat:41.0110,lon:28.6350, neighborhoods:["Adnan Kahveci","Beylikdüzü Merkez","Yakuplu"]},
+{ name:"Beyoğlu",lat:41.0315,lon:28.9760, neighborhoods:["Taksim","Cihangir","Galata"]},
+{ name:"Büyükçekmece",lat:41.0410,lon:28.5850, neighborhoods:["Kumburgaz","Mimaroba","Celaliye"]},
+{ name:"Çatalca",lat:41.1590,lon:28.3550, neighborhoods:["Merkez","Ferhatpaşa","Ortaköy"]},
+{ name:"Çekmeköy",lat:41.0990,lon:29.1540, neighborhoods:["Çekmeköy Merkez","Sultanbeyli","Taşdelen"]},
+{ name:"Esenler",lat:41.0340,lon:28.8890, neighborhoods:["Mahmutbey","Menderes","Birlik"]},
+{ name:"Esenyurt",lat:41.0340,lon:28.6670, neighborhoods:["Pazariçi","Akevler","Fatih"]},
+{ name:"Eyüpsultan",lat:41.0500,lon:28.9330, neighborhoods:["Alibeyköy","Rami","Göktürk"]},
+{ name:"Fatih",lat:41.0145,lon:28.9490, neighborhoods:["Sultanahmet","Fener","Aksaray","Cankurtaran"]},
+{ name:"Gaziosmanpaşa",lat:41.0490,lon:28.9030, neighborhoods:["Karadeniz Mah","Mevlana","Kocatepe"]},
+{ name:"Güngören",lat:41.0270,lon:28.8810, neighborhoods:["Merkez","Mollagürani","Tozkoparan"]},
+{ name:"Kadıköy",lat:40.9900,lon:29.0270, neighborhoods:["Moda","Fenerbahçe","Suadiye","Acıbadem","Kozyatağı"]},
+{ name:"Kağıthane",lat:41.0760,lon:28.9740, neighborhoods:["Merkez","Sanayi","Çağlayan"]},
+{ name:"Kartal",lat:40.9010,lon:29.2130, neighborhoods:["Merkez","Soğanlık","Yakacık"]},
+{ name:"Küçükçekmece",lat:41.0000,lon:28.8080, neighborhoods:["Halkalı","Küçükçekmece Merkez","Sefaköy"]},
+{ name:"Maltepe",lat:40.9500,lon:29.1600, neighborhoods:["Cevizli","Feyzullah","Zümrütevler"]},
+{ name:"Pendik",lat:40.8670,lon:29.2620, neighborhoods:["Merkez","Kaynarca","Güzelyali"]},
+{ name:"Sancaktepe",lat:40.9990,lon:29.2370, neighborhoods:["Fatih","Mehmet Akif","Abdurrahmangazi"]},
+{ name:"Sarıyer",lat:41.1660,lon:29.0490, neighborhoods:["Tarabya","Maslak","Rumelifeneri"]},
+{ name:"Şile",lat:41.1800,lon:29.6660, neighborhoods:["Merkez","Ağva","Kadıköy"]},
+{ name:"Şişli",lat:41.0610,lon:28.9870, neighborhoods:["Nişantaşı","Mecidiyeköy","Harbiye"]},
+{ name:"Sultanbeyli",lat:40.9500,lon:29.2480, neighborhoods:["Merkez","Abdurrahmangazi","Battalgazi"]},
+{ name:"Sultangazi",lat:41.0860,lon:28.8880, neighborhoods:["Cebeci","Habibler","Uğur Mumcu"]},
+{ name:"Tuzla",lat:40.8100,lon:29.3000, neighborhoods:["Merkez","Aydınlı","İçmeler"]},
+{ name:"Ümraniye",lat:41.0200,lon:29.1060, neighborhoods:["Tatlısu","Huzur","Çakmak"]},
+{ name:"Üsküdar",lat:41.0170,lon:29.0280, neighborhoods:["Altunizade","Beylerbeyi","Çengelköy","Üsküdar Merkez"]},
+{ name:"Zeytinburnu",lat:40.9930,lon:28.9140, neighborhoods:["Merkez","Kazlıçeşme","Yeşiltepe"]},
+{ name:"Silivri",lat:41.0700,lon:28.2500, neighborhoods:["Merkez","Çanta","Temelli"]}
 ];
 
 // Weather Code Map
@@ -72,8 +101,6 @@ const weatherCodeMap={0:["Açık","☀️"],1:["Parçalı Bulutlu","⛅️"],2:[
 
 const districtSelect=document.getElementById('districtSelect');
 const neighborhoodSelect=document.getElementById('neighborhoodSelect');
-
-districts.forEach(d=>{const o=document.createElement('option');o.value=d.name;o.textContent=d.name;districtSelect.appendChild(o);});
 
 districtSelect.addEventListener('change',()=>{
   neighborhoodSelect.innerHTML='<option value="">Mahalle Seçin</option>';
