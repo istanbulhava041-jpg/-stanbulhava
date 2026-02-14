@@ -1,161 +1,44 @@
-<!DOCTYPE html>
-<html lang="tr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>İstanbul Hava Durumu Pro</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --bg-grad: linear-gradient(180deg, #4A90E2 0%, #87CEEB 100%);
-            --card-bg: rgba(255, 255, 255, 0.2);
-            --text-color: #fff;
-        }
-
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
-
-        body {
-            background: var(--bg-grad);
-            background-attachment: fixed;
-            min-height: 100vh;
-            color: var(--text-color);
-            display: flex;
-            justify-content: center;
-            padding: 20px;
-            overflow-x: hidden;
-        }
-
-        .container { width: 100%; max-width: 500px; z-index: 10; }
-
-        /* Seçim Alanı */
-        .selectors { display: flex; gap: 10px; margin-bottom: 20px; }
-        select {
-            flex: 1; padding: 12px; border-radius: 12px; border: none;
-            background: var(--card-bg); color: white; backdrop-filter: blur(10px);
-            outline: none; font-size: 14px; cursor: pointer;
-        }
-        select option { color: #333; }
-
-        /* Ana Kart */
-        .main-card {
-            background: var(--card-bg); backdrop-filter: blur(15px);
-            border-radius: 24px; padding: 30px; text-align: center;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.1); margin-bottom: 20px;
-        }
-        .temp-big { font-size: 72px; font-weight: 300; margin: 10px 0; }
-        .details-grid {
-            display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px;
-            margin-top: 20px; font-size: 14px;
-        }
-        .detail-item { background: rgba(255,255,255,0.1); padding: 10px; border-radius: 12px; }
-
-        /* Grafik */
-        .chart-container {
-            background: var(--card-bg); backdrop-filter: blur(15px);
-            border-radius: 24px; padding: 20px; margin-bottom: 20px;
-        }
-
-        /* 7 Günlük Tahmin */
-        .forecast-scroll {
-            display: flex; gap: 15px; overflow-x: auto; padding-bottom: 10px;
-            scrollbar-width: none;
-        }
-        .forecast-scroll::-webkit-scrollbar { display: none; }
-        .forecast-item {
-            min-width: 80px; background: var(--card-bg); padding: 15px;
-            border-radius: 16px; text-align: center;
-        }
-
-        /* Animasyonlar */
-        #weather-anim {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            pointer-events: none; z-index: 1;
-        }
-        .drop {
-            position: absolute; background: rgba(255,255,255,0.6);
-            width: 2px; height: 15px; animation: fall linear infinite;
-        }
-        .snow {
-            position: absolute; background: white; border-radius: 50%;
-            width: 5px; height: 5px; animation: fall linear infinite;
-        }
-        @keyframes fall { to { transform: translateY(100vh); } }
-    </style>
-</head>
-<body>
-
-<div id="weather-anim"></div>
-
-<div class="container">
-    <div class="selectors">
-        <select id="districts" onchange="updateNeighborhoods()">
-            </select>
-        <select id="neighborhoods" onchange="fetchWeather()">
-            </select>
-    </div>
-
-    <div class="main-card">
-        <h2 id="loc-name">Yükleniyor...</h2>
-        <div class="temp-big" id="current-temp">--°</div>
-        <p id="weather-desc">Durum</p>
-        <div class="details-grid">
-            <div class="detail-item">Hissedilen: <b id="feel-temp">--°</b></div>
-            <div class="detail-item">Nem: <b id="humidity">%--</b></div>
-            <div class="detail-item">Rüzgar: <b id="wind">-- km/s</b></div>
-            <div class="detail-item">UV: <b id="uv">--</b></div>
-        </div>
-    </div>
-
-    <div class="chart-container">
-        <canvas id="hourlyChart"></canvas>
-    </div>
-
-    <div class="forecast-scroll" id="forecast">
-        </div>
-</div>
-
 <script>
 const data = {
-    "Adalar": {lat: 40.85, lon: 29.12, n: ["Büyükada", "Heybeliada", "Burgazada"]},
-    "Arnavutköy": {lat: 41.18, lon: 28.74, n: ["Hadımköy", "Bolluca", "Haraççı"]},
-    "Ataşehir": {lat: 40.98, lon: 29.11, n: ["Barbaros", "İçerenköy", "Kayışdağı"]},
-    "Avcılar": {lat: 40.98, lon: 28.71, n: ["Ambarlı", "Cihangir", "Denizköşkler"]},
-    "Bağcılar": {lat: 41.03, lon: 28.83, n: ["Güneşli", "Kirazlı", "Mahmutbey"]},
-    "Bahçelievler": {lat: 41.00, lon: 28.85, n: ["Yenibosna", "Şirinevler", "Kocasinan"]},
-    "Bakırköy": {lat: 40.97, lon: 28.87, n: ["Florya", "Yeşilköy", "Ataköy"]},
-    "Başakşehir": {lat: 41.09, lon: 28.80, n: ["Bahçeşehir", "Kayaşehir", "Güvercintepe"]},
-    "Bayrampaşa": {lat: 41.04, lon: 28.90, n: ["Yıldırım", "Altıntepsi", "Kocatepe"]},
-    "Beşiktaş": {lat: 41.04, lon: 29.00, n: ["Bebek", "Etiler", "Ortaköy", "Levent"]},
-    "Beykoz": {lat: 41.11, lon: 29.09, n: ["Kavacık", "Kanlıca", "Paşabahçe"]},
-    "Beylikdüzü": {lat: 41.00, lon: 28.63, n: ["Adnan Kahveci", "Gürpınar", "Yakuplu"]},
-    "Beyoğlu": {lat: 41.03, lon: 28.97, n: ["Taksim", "Cihangir", "Karaköy", "Sütlüce"]},
-    "Büyükçekmece": {lat: 41.02, lon: 28.58, n: ["Mimaroba", "Kumburgaz", "Tepecik"]},
-    "Çatalca": {lat: 41.14, lon: 28.46, n: ["Kaleiçi", "Ferhatpaşa", "Binkılıç"]},
-    "Çekmeköy": {lat: 41.03, lon: 29.17, n: ["Alemdağ", "Taşdelen", "Ömerli"]},
-    "Esenler": {lat: 41.03, lon: 28.89, n: ["Turgut Reis", "Havaalanı", "Birlik"]},
-    "Esenyurt": {lat: 41.03, lon: 28.67, n: ["Saadetdere", "Kıraç", "Mehterçeşme"]},
-    "Eyüpsultan": {lat: 41.05, lon: 28.93, n: ["Göktürk", "Alibeyköy", "Kemerburgaz"]},
-    "Fatih": {lat: 41.01, lon: 28.94, n: ["Sultanahmet", "Balat", "Aksaray", "Eminönü"]},
-    "Gaziosmanpaşa": {lat: 41.05, lon: 28.90, n: ["Bağlarbaşı", "Küçükköy", "Karadeniz"]},
-    "Güngören": {lat: 41.02, lon: 28.87, n: ["Merter", "Haznedar", "Tozkoparan"]},
-    "Kadıköy": {lat: 40.99, lon: 29.02, n: ["Moda", "Fenerbahçe", "Bostancı", "Erenköy"]},
-    "Kağıthane": {lat: 41.08, lon: 28.97, n: ["Gültepe", "Çeliktepe", "Seyrantepe"]},
-    "Kartal": {lat: 40.90, lon: 29.19, n: ["Soğanlık", "Yakacık", "Dragos"]},
-    "Küçükçekmece": {lat: 41.00, lon: 28.77, n: ["Halkalı", "İkitelli", "Sefaköy"]},
-    "Maltepe": {lat: 40.93, lon: 29.14, n: ["Küçükyalı", "İdealtepe", "Zümrütevler"]},
-    "Pendik": {lat: 40.87, lon: 29.23, n: ["Kurtköy", "Kaynarca", "Güzelyalı"]},
-    "Sancaktepe": {lat: 41.00, lon: 29.23, n: ["Samandıra", "Yenidoğan", "Sarıgazi"]},
-    "Sarıyer": {lat: 41.17, lon: 29.05, n: ["Tarabya", "İstinye", "Zekeriyaköy", "Emirgan"]},
-    "Silivri": {lat: 41.07, lon: 28.24, n: ["Selimpaşa", "Gümüşyaka", "Ortaköy"]},
-    "Sultanbeyli": {lat: 40.96, lon: 29.26, n: ["Abdurrahmangazi", "Mecidiye", "Hamidiye"]},
-    "Sultangazi": {lat: 41.10, lon: 28.86, n: ["Cebeci", "Habibler", "Yunusemre"]},
-    "Şile": {lat: 41.17, lon: 29.61, n: ["Ağva", "Kumbaba", "Çayırbaşı"]},
-    "Şişli": {lat: 41.06, lon: 28.98, n: ["Nişantaşı", "Mecidiyeköy", "Feriköy", "Bomonti"]},
-    "Tuzla": {lat: 40.81, lon: 29.30, n: ["Aydınlı", "İçmeler", "Akfırat"]},
-    "Ümraniye": {lat: 41.02, lon: 29.10, n: ["Ihlamurkuyu", "Çakmak", "Dudullu"]},
-    "Üsküdar": {lat: 41.02, lon: 29.01, n: ["Kuzguncuk", "Beylerbeyi", "Çengelköy", "Acıbadem"]},
-    "Zeytinburnu": {lat: 40.99, lon: 28.90, n: ["Merkezefendi", "Telsiz", "Beştelsiz"]}
+    "Adalar": {lat: 40.85, lon: 29.12, n: ["Burgazada", "Heybeliada", "Kınalıada", "Maden", "Nizam"]},
+    "Arnavutköy": {lat: 41.18, lon: 28.74, n: ["Adnan Menderes", "Anadolu", "Arnavutköy Merkez", "Atatürk", "Baklalı", "Balaban", "Boğazköy", "Bolluca", "Boyalık", "Çilingir", "Deliklikaya", "Dursunköy", "Durusu", "Fatih", "Hacımaşlı", "Hadımköy", "Haraççı", "Hastane", "Hicret", "İmrahor", "İslambey", "Karaburun", "Karlıbayır", "Mavigöl", "Mehmet Akif Ersoy", "Mustafa Kemal Paşa", "Nenehatun", "Ömerli", "Sazlıbosna", "Taşoluk", "Tayakadın", "Terkos", "Yassıören", "Yavuz Selim", "Yeniköy", "Yeşilbayır"]},
+    "Ataşehir": {lat: 40.98, lon: 29.11, n: ["Aşık Veysel", "Atatürk", "Barbaros", "Esatpaşa", "Ferhatpaşa", "Fetih", "İçerenköy", "İnönü", "Kayışdağı", "Küçükbakkalköy", "Mevlana", "Mimar Sinan", "Mustafa Kemal", "Örnek", "Yeni Çamlıca", "Yeni Sahra", "Yenişehir"]},
+    "Avcılar": {lat: 40.98, lon: 28.71, n: ["Ambarlı", "Cihangir", "Denizköşkler", "Firuzköy", "Gümüşpala", "Merkez", "Mustafa Kemal Paşa", "Tahtakale", "Üniversite", "Yeşilkent"]},
+    "Bağcılar": {lat: 41.03, lon: 28.83, n: ["100. Yıl", "15 Temmuz", "Bağlar", "Barbaros", "Çınar", "Demirkapı", "Fatih", "Fevzi Çakmak", "Göztepe", "Güneşli", "Hürriyet", "İnönü", "Kazım Karabekir", "Kemalpaşa", "Kirazlı", "Mahmutbey", "Merkez", "Sancaktepe", "Yavuz Selim", "Yenigün", "Yenimahalle", "Yıldıztepe"]},
+    "Bahçelievler": {lat: 41.00, lon: 28.85, n: ["Bahçelievler", "Cumhuriyet", "Çobançeşme", "Fevzi Çakmak", "Hürriyet", "Kocasinan", "Siyavuşpaşa", "Soğanlı", "Şirinevler", "Yenibosna", "Zafer"]},
+    "Bakırköy": {lat: 40.97, lon: 28.87, n: ["Ataköy 1.", "Ataköy 2-5-6.", "Ataköy 3-4-11.", "Ataköy 7-8-9-10.", "Cevizlik", "Kartaltepe", "Osmaniye", "Sakızağacı", "Şenlikköy", "Yenimahalle", "Yeşilköy", "Yeşilyurt", "Zeytinlik", "Zuhuratbaba", "Florya"]},
+    "Başakşehir": {lat: 41.09, lon: 28.80, n: ["Altınşehir", "Bahçeşehir 1. Kısım", "Bahçeşehir 2. Kısım", "Başak", "Başakşehir", "Güvercintepe", "İkitelli OSB", "Kayabaşı", "Şahintepe", "Şamlar", "Ziya Gökalp"]},
+    "Bayrampaşa": {lat: 41.04, lon: 28.90, n: ["Altıntepsi", "Cevatpaşa", "İsmet Paşa", "Kartaltepe", "Kocatepe", "Muratpaşa", "Orta", "Terazidere", "Vatan", "Yenidoğan", "Yıldırım"]},
+    "Beşiktaş": {lat: 41.04, lon: 29.00, n: ["Abbasağa", "Akat", "Arnavutköy", "Balmumcu", "Bebek", "Cihannüma", "Dikilitaş", "Etiler", "Gayrettepe", "Konaklar", "Kuruçeşme", "Kültür", "Levazım", "Levent", "Mecidiye", "Muradiye", "Nisbetiye", "Ortaköy", "Sinanpaşa", "Türkali", "Ulus", "Vişnezade", "Yıldız"]},
+    "Beykoz": {lat: 41.11, lon: 29.09, n: ["Acarlar", "Anadoluhisarı", "Anadolukavağı", "Baklacı", "Çamlıbahçe", "Çengeldere", "Çiftlik", "Çiğdem", "Çubuklu", "Fatih", "Gümüşsuyu", "İncirköy", "Kanlıca", "Kavacık", "Merkez", "Ortaçeşme", "Paşabahçe", "Rüzgarlıbahçe", "Soğuksu", "Tokatköy", "Yalıköy", "Yavuz Selim"]},
+    "Beylikdüzü": {lat: 41.00, lon: 28.63, n: ["Adnan Kahveci", "Barış", "Büyükşehir", "Cumhuriyet", "Dereağzı", "Gürpınar", "Kavaklı", "Marmara", "Sahil", "Yakuplu"]},
+    "Beyoğlu": {lat: 41.03, lon: 28.97, n: ["Arap Cami", "Asmalı Mescit", "Bedrettin", "Cihangir", "Fetihtepe", "Gümüşsuyu", "Halıcıoğlu", "Hüseyinağa", "İstiklal", "Kaptanpaşa", "Karaköy", "Kasımpaşa", "Kulaksız", "Örnektepe", "Piri Paşa", "Sütlüce", "Şahkulu", "Taksim", "Tarlabaşı", "Tomtom"]},
+    "Büyükçekmece": {lat: 41.02, lon: 28.58, n: ["19 Mayıs", "Ahmediye", "Alkent 2000", "Atatürk", "Batıköy", "Celaliye", "Cumhuriyet", "Dizdariye", "Ekinoba", "Fatih", "Güzelce", "Hürriyet", "Kamiloba", "Kumburgaz", "Mimaroba", "Mimarsinan", "Murat Çeşme", "Pınartepe", "Sinanoba", "Türkoba", "Ulus", "Yenimahalle"]},
+    "Çatalca": {lat: 41.14, lon: 28.46, n: ["Akalan", "Aydınlar", "Başak", "Belgrat", "Binkılıç", "Çakıl", "Çiftlikköy", "Dağyenice", "Ferhatpaşa", "Gökçeali", "İnceğiz", "İzzettin", "Kaleiçi", "Karacaköy", "Kestanelik", "Oklalı", "Ormanlı", "Ovayenice", "Subaşı", "Yalıköy"]},
+    "Çekmeköy": {lat: 41.03, lon: 29.17, n: ["Alemdağ", "Aydınlar", "Cumhuriyet", "Çatalmeşe", "Ekşioğlu", "Güngören", "Hamidiye", "Kirazlıdere", "Mehmet Akif", "Merkez", "Mimar Sinan", "Nişantepe", "Ömerli", "Soğukpınar", "Sultançiftliği", "Taşdelen"]},
+    "Esenler": {lat: 41.03, lon: 28.89, n: ["Birlik", "Çifte Havuzlar", "Davutpaşa", "Fatih", "Fevzi Çakmak", "Havaalanı", "Kazım Karabekir", "Kemer", "Menderes", "Mimar Sinan", "Namık Kemal", "Nene Hatun", "Oruçreis", "Tuna", "Turgut Reis", "Yavuz Selim"]},
+    "Esenyurt": {lat: 41.03, lon: 28.67, n: ["Akçaburgaz", "Akevler", "Akşemsettin", "Ardıçlı", "Aşık Veysel", "Atatürk", "Bağlarçeşme", "Balıkyolu", "Barbaros Hayrettin Paşa", "Battalgazi", "Cumhuriyet", "Çınar", "Dereyolu", "Fatih", "Güzelyurt", "Hürriyet", "İncirtepe", "İnönü", "İstiklal", "Koza", "Mehmet Akif Ersoy", "Mehtap", "Mevlana", "Namık Kemal", "Örnek", "Piri Reis", "Saadetdere", "Selahaddin Eyyubi", "Sultaniye", "Süleymaniye", "Talataşa", "Turgut Özal", "Üçevler", "Yenikent", "Yeşilkent"]},
+    "Eyüpsultan": {lat: 41.05, lon: 28.93, n: ["Ağaçlı", "Akpınar", "Akşemsettin", "Alibeyköy", "Çırçır", "Defterdar", "Düğmeciler", "Emniyettepe", "Esentepe", "Göktürk", "Güzeltepe", "Işıklar", "İhsaniye", "İslambey", "Kemerburgaz", "Mimar Sinan", "Mithatpaşa", "Nişancı", "Odayeri", "Pirinççi", "Rami Cuma", "Rami Yeni", "Sakarya", "Silahtarağa", "Topçular", "Yeşilpınar"]},
+    "Fatih": {lat: 41.01, lon: 28.94, n: ["Aksaray", "Balat", "Beyazıt", "Cankurtaran", "Cerrahpaşa", "Derviş Ali", "Eminönü", "Haseki", "Karagümrük", "Kocamustafapaşa", "Mevlanakapı", "Samanatya", "Sultanahmet", "Tahtakale", "Topkapı", "Vefa", "Yedikule"]},
+    "Gaziosmanpaşa": {lat: 41.05, lon: 28.90, n: ["Bağlarbaşı", "Barbaros Hayrettin Paşa", "Fevzi Çakmak", "Hürriyet", "Karadeniz", "Karayolları", "Karlıtepe", "Kazım Karabekir", "Merkez", "Mevlana", "Pazariçi", "Sarıgöl", "Şemsipaşa", "Yenidoğan", "Yıldıztabya"]},
+    "Güngören": {lat: 41.02, lon: 28.87, n: ["Abdurrahman Nafiz Gürman", "Akıncılar", "Gençosman", "Güneştepe", "Güven", "Haznedar", "Mareşal Çakmak", "Mehmet Nesih Özmen", "Merkez", "Sanayi", "Tozkoparan"]},
+    "Kadıköy": {lat: 40.99, lon: 29.02, n: ["19 Mayıs", "Acıbadem", "Bostancı", "Caddebostan", "Caferağa", "Dumlupınar", "Eğitim", "Erenköy", "Fenerbahçe", "Feneryolu", "Fikirtepe", "Göztepe", "Hasanpaşa", "Koşuyolu", "Kozyatağı", "Merdivenköy", "Osmanağa", "Rasimpaşa", "Sahrayıcedit", "Suadiye", "Zühtüpaşa"]},
+    "Kağıthane": {lat: 41.08, lon: 28.97, n: ["Çağlayan", "Çeliktepe", "Emniyet Evleri", "Gültepe", "Gürsel", "Hamidiye", "Harmantepe", "Hürriyet", "Mehmet Akif Ersoy", "Merkez", "Nurtepe", "Ortabayır", "Sanayi", "Seyrantepe", "Şirintepe", "Talatpaşa", "Telsizler", "Yahya Kemal", "Yeşilce"]},
+    "Kartal": {lat: 40.90, lon: 29.19, n: ["Atalar", "Cevizli", "Cumhuriyet", "Çavuşoğlu", "Esentepe", "Gümüşpınar", "Hürriyet", "Karlıktepe", "Kordonboyu", "Orhantepe", "Orta", "Petrol İş", "Soğanlık", "Topselvi", "Uğurmumcu", "Yakacık", "Yalı", "Yukarı"]},
+    "Küçükçekmece": {lat: 41.00, lon: 28.77, n: ["Atakent", "Atatürk", "Beşyol", "Cennet", "Cumhuriyet", "Fatih", "Fevzi Çakmak", "Gültepe", "Halkalı Merkez", "İnönü", "İstasyon", "Kanarya", "Kartaltepe", "Kemalpaşa", "Mehmet Akif", "Söğütlü Çeşme", "Sultan Murat", "Tevfik Bey", "Yarımburgaz", "Yeni Mahalle", "Yeşilova"]},
+    "Maltepe": {lat: 40.93, lon: 29.14, n: ["Altayçeşme", "Altıntepe", "Aydınevler", "Bağlarbaşı", "Başıbüyük", "Büyükbakkalköy", "Cevizli", "Çınar", "Esenkent", "Feyzullah", "Fındıklı", "Girne", "Gülensu", "Gülsuyu", "İdealtepe", "Küçükyalı", "Yalı", "Zümrütevler"]},
+    "Pendik": {lat: 40.87, lon: 29.23, n: ["Ahmet Yesevi", "Bahçelievler", "Batı", "Çamçeşme", "Çamlık", "Çınardere", "Doğu", "Dumlupınar", "Ertuğrul Gazi", "Esenler", "Esenyalı", "Fatih", "Fevzi Çakmak", "Güllü Bağlar", "Güzelyalı", "Harmandere", "Kavakpınar", "Kaynarca", "Kurtköy", "Orhangazi", "Orta", "Ramanoğlu", "Sapan Bağları", "Sülüntepe", "Şeyhli", "Velibaba", "Yayalar", "Yeni Mahalle", "Yenişehir", "Yeşilbağlar"]},
+    "Sancaktepe": {lat: 41.00, lon: 29.23, n: ["Abdurrahmangazi", "Akpınar", "Atatürk", "Emek", "Eyüp Sultan", "Fatih", "Hilal", "İnönü", "Meclis", "Merve", "Mevlana", "Osmangazi", "Paşaköy", "Safa", "Sarıgazi", "Veysel Karani", "Yenidoğan", "Yunusemre"]},
+    "Sarıyer": {lat: 41.17, lon: 29.05, n: ["Ayazağa", "Bahçeköy", "Baltalimanı", "Büyükdere", "Cumhuriyet", "Çayırbaşı", "Darüşşafaka", "Demirci", "Emirgan", "Fatih Sultan Mehmet", "Ferahevler", "Garipçe", "Gümüşdere", "Huzur", "İstinye", "Kemer", "Kısırkaya", "Kireçburnu", "Kocataş", "Kumköy", "Madem", "Maslak", "Merkez", "Pınar", "Poligon", "Ptt Evleri", "Reşitpaşa", "Rumelifeneri", "Rumelihisarı", "Rumelikavağı", "Tarabya", "Uskumruköy", "Yeniköy", "Zekeriyaköy"]},
+    "Silivri": {lat: 41.07, lon: 28.24, n: ["Alibey", "Alipaşa", "Bekirli", "Beyciler", "Büyükçavuşlu", "Cumhuriyet", "Çanta", "Çayırdere", "Danamandıra", "Fatih", "Fener", "Gazitepe", "Gümüşyaka", "Hürriyet", "İsmetpaşa", "Kadıköy", "Kavaklı", "Mimarsinan", "Ortaköy", "Piri Mehmet Paşa", "Sancaktar", "Sayalar", "Selimpaşa", "Semizkumlar", "Yenimahalle"]},
+    "Sultanbeyli": {lat: 40.96, lon: 29.26, n: ["Abdurrahmangazi", "Adil", "Ahmet Yesevi", "Akşemsettin", "Battalgazi", "Fatih", "Hamidiye", "Hasanpaşa", "Mecidiye", "Mehmet Akif", "Mimar Sinan", "Necip Fazıl", "Orhangazi", "Turgut Reis", "Yavuz Selim"]},
+    "Sultangazi": {lat: 41.10, lon: 28.86, n: ["50. Yıl", "75. Yıl", "Cebeci", "Cumhuriyet", "Esentepe", "Eski Habipler", "Gazi", "Habipler", "İsmetpaşa", "Malkoçoğlu", "Sultançiftliği", "Uğur Mumcu", "Yayla", "Yunusemre", "Zübeyde Hanım"]},
+    "Şile": {lat: 41.17, lon: 29.61, n: ["Ağva", "Ahmetli", "Alacalı", "Avcıkoru", "Balibey", "Bıçkıdere", "Bozhane", "Çavuş", "Darlık", "Hacıkasım", "İmrenli", "Karakiraz", "Kumbaba", "Kurfallı", "Meşrutiyet", "Ovacık", "Sahilköy", "Tekeköy", "Üvezli", "Yeniköy"]},
+    "Şişli": {lat: 41.06, lon: 28.98, n: ["19 Mayıs", "Bozkurt", "Cumhuriyet", "Duatepe", "Ergenekon", "Esentepe", "Eskişehir", "Feriköy", "Fulya", "Gülbahar", "Halaskargazi", "Halide Edip Adıvar", "Halil Rıfat Paşa", "Harbiye", "İnönü", "İzzet Paşa", "Kaptanpaşa", "Kuştepe", "Mahmut Şevket Paşa", "Mecidiyeköy", "Merkez", "Meşrutiyet", "Paşa", "Teşvikiye", "Yayla"]},
+    "Tuzla": {lat: 40.81, lon: 29.30, n: ["Akfırat", "Anadolu", "Aydınlı", "Cami", "Evliya Çelebi", "Fatih", "İçmeler", "İstasyon", "Mescit", "Mimar Sinan", "Orhanlı", "Orta", "Postane", "Şifa", "Tepeören", "Yayla"]},
+    "Ümraniye": {lat: 41.02, lon: 29.10, n: ["Adem Yavuz", "Altınşehir", "Armağanevler", "Aşağı Dudullu", "Atakent", "Atatürk", "Cemil Meriç", "Çakmak", "Çamlık", "Dumlupınar", "Elmalıkent", "Esenevler", "Esenşehir", "Fatih Sultan Mehmet", "Hekimbaşı", "Huzur", "Ihlamurkuyu", "İnkılap", "İstiklal", "Kazım Karabekir", "Madenler", "Mehmet Akif", "Namık Kemal", "Necip Fazıl", "Parseller", "Şerifali", "Site", "Tantavi", "Tatlısu", "Tepeüstü", "Topağacı", "Yamanevler", "Yenişehir", "Yukarı Dudullu"]},
+    "Üsküdar": {lat: 41.02, lon: 29.01, n: ["Acıbadem", "Ahmediye", "Altunizade", "Aziz Mahmud Hüdayi", "Bahçelievler", "Barbaros", "Beylerbeyi", "Bulgurlu", "Burhaniye", "Cumhuriyet", "Çengelköy", "Ferah", "Güzeltepe", "İcladiye", "Kandilli", "Kuleli", "Kuzguncuk", "Küçük Çamlıca", "Küçüksu", "Kuleli", "Kirazlıtepe", "Mehmet Akif Ersoy", "Mimar Sinan", "Murat Reis", "Salacak", "Selami Ali", "Selimiye", "Sultantepe", "Ünalan", "Yavuztürk", "Zeynep Kamil"]},
+    "Zeytinburnu": {lat: 40.99, lon: 28.90, n: ["Beştelsiz", "Çırpıcı", "Gökalp", "Kazlıçeşme", "Maltepe", "Merkezefendi", "Nuripaşa", "Seyitnizam", "Sümer", "Telsiz", "Veliefendi", "Yenidoğan", "Yeşiltepe"]}
 };
 
 let myChart;
@@ -164,17 +47,23 @@ const neighborhoodSelect = document.getElementById('neighborhoods');
 
 // Başlangıç
 window.onload = () => {
-    for (let d in data) {
+    // İlçeleri alfabetik sıralayalım
+    const sortedDistricts = Object.keys(data).sort((a, b) => a.localeCompare(b, 'tr'));
+    
+    sortedDistricts.forEach(d => {
         let opt = new Option(d, d);
         districtSelect.add(opt);
-    }
+    });
     updateNeighborhoods();
 };
 
 function updateNeighborhoods() {
     const d = districtSelect.value;
     neighborhoodSelect.innerHTML = '';
-    data[d].n.forEach(nh => {
+    // Mahalleleri alfabetik sıralayalım
+    const sortedNeighborhoods = data[d].n.sort((a, b) => a.localeCompare(b, 'tr'));
+    
+    sortedNeighborhoods.forEach(nh => {
         neighborhoodSelect.add(new Option(nh, nh));
     });
     fetchWeather();
@@ -191,7 +80,7 @@ async function fetchWeather() {
         const json = await res.json();
         updateUI(json);
     } catch (e) {
-        alert("Hava durumu verisi alınamadı. Lütfen internetinizi kontrol edin.");
+        alert("Hava durumu verisi şu an alınamıyor.");
     }
 }
 
@@ -288,7 +177,5 @@ function setAnimations(code) {
         }
     }
 }
-</script>
-
-</body>
-</html>
+                                            </script>
+                                            
