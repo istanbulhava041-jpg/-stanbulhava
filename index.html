@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>İstanbul Hava Durumu Pro 🌤️</title>
+    <style>
+        :root { --glass: rgba(255, 255, 255, 0.1); --primary: #00d2ff; }
+        body { margin: 0; min-height: 100vh; font-family: sans-serif; background: #0f172a; color: white; display: flex; justify-content: center; padding: 20px; }
+        .container { width: 100%; max-width: 450px; }
+        .glass-card { background: var(--glass); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.15); border-radius: 30px; padding: 25px; margin-bottom: 20px; text-align: center; }
+        select { width: 100%; padding: 15px; border-radius: 15px; background: #1e293b; color: var(--primary); border: 2px solid var(--primary); font-size: 16px; outline: none; }
+        .temp-main { font-size: 70px; font-weight: 800; margin: 10px 0; }
+        .stats { display: flex; justify-content: space-around; margin: 20px 0; padding: 15px; background: rgba(0,0,0,0.2); border-radius: 20px; font-size: 14px; }
+        .forecast { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+        .f-item { background: rgba(255,255,255,0.05); padding: 10px; border-radius: 15px; font-size: 11px; }
+        #weather-box { display: none; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="glass-card">
+        <h2 style="margin:0">İSTANBUL 🌉</h2>
+        <p style="opacity:0.7">Konum Bazlı Doğru Tahminler</p>
+        <select id="ilceListesi" onchange="havayiGetir(this.value)">
+            <option value="" disabled selected>🔍 Bir ilçe seçin...</option>
+        </select>
+    </div>
+
+    <div id="weather-box">
+        <div class="glass-card">
+            <h1 id="sehir">--</h1>
+            <img id="icon" src="" alt="" style="width:80px">
+            <div class="temp-main" id="derece">--°</div>
+            <h3 id="durum" style="text-transform: uppercase; color: var(--primary)">--</h3>
+            <div class="stats">
+                <div>💧 Nem<br><b id="nem">%--</b></div>
+                <div>💨 Rüzgar<br><b id="ruzgar">-- km/h</b></div>
+                <div>🌡️ His<br><b id="his">--°</b></div>
+            </div>
+        </div>
+        <div class="glass-card">
+            <h4 style="margin: 0 0 15px 0">📅 7 GÜNLÜK TAHMİN</h4>
+            <div class="forecast" id="tahmin-grid"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const apiKey = "0e098ea6f03f43d18ca142205261402";
+
+    // İlçeler ve Koordinatları (Doğru tahmin için enlem/boylam eklendi)
+    const ilceData = {
+        "Adalar": "40.87,29.13", "Arnavutköy": "41.18,28.74", "Ataşehir": "40.98,29.11", "Avcılar": "40.98,28.72", "Bağcılar": "41.03,28.84", "Bahçelievler": "41.00,28.86", "Bakırköy": "40.98,28.87", "Başakşehir": "41.08,28.79", "Bayrampaşa": "41.04,28.89", "Beşiktaş": "41.04,29.00", "Beykoz": "41.13,29.10", "Beylikdüzü": "41.00,28.64", "Beyoğlu": "41.03,28.97", "Büyükçekmece": "41.02,28.59", "Çatalca": "41.14,28.46", "Çekmeköy": "41.04,29.21", "Esenler": "41.04,28.87", "Esenyurt": "41.03,28.68", "Eyüpsultan": "41.05,28.93", "Fatih": "41.02,28.94", "Gaziosmanpaşa": "41.06,28.91", "Güngören": "41.02,28.87", "Kadıköy": "40.99,29.03", "Kağıthane": "41.08,28.97", "Kartal": "40.89,29.19", "Küçükçekmece": "41.00,28.78", "Maltepe": "40.93,29.14", "Pendik": "40.88,29.23", "Sancaktepe": "40.99,29.23", "Sarıyer": "41.17,29.05", "Şile": "41.17,29.61", "Şişli": "41.06,28.99", "Sultanbeyli": "40.97,29.26", "Sultangazi": "41.10,28.87", "Tuzla": "40.82,29.30", "Ümraniye": "41.03,29.11", "Üsküdar": "41.03,29.02", "Zeytinburnu": "40.99,28.90", "Silivri": "41.07,28.25"
+    };
+
+    const select = document.getElementById('ilceListesi');
+    Object.keys(ilceData).sort().forEach(i => {
+        let opt = document.createElement('option');
+        opt.value = ilceData[i]; opt.innerText = i;
+        select.appendChild(opt);
+    });
+
+    async function havayiGetir(coords) {
+        const url = `https://api.weatherapi.com/v1/forecast.json?key=${apiKey}&q=${coords}&days=7&lang=tr`;
+
+        try {
+            const yanit = await fetch(url);
+            const veri = await yanit.json();
+
+            document.getElementById('weather-box').style.display = 'block';
+            document.getElementById('sehir').innerText = select.options[select.selectedIndex].text.toUpperCase();
+            document.getElementById('derece').innerText = Math.round(veri.current.temp_c) + "°";
+            document.getElementById('durum').innerText = veri.current.condition.text;
+            document.getElementById('icon').src = "https:" + veri.current.condition.icon;
+            document.getElementById('nem').innerText = "%" + veri.current.humidity;
+            document.getElementById('ruzgar').innerText = veri.current.wind_kph + " km/h";
+            document.getElementById('his').innerText = Math.round(veri.current.feelslike_c) + "°";
+
+            const grid = document.getElementById('tahmin-grid');
+            grid.innerHTML = '';
+            veri.forecast.forecastday.forEach(gun => {
+                grid.innerHTML += `
+                    <div class="f-item">
+                        <b>${new Date(gun.date).toLocaleDateString('tr-TR', {weekday: 'short'})}</b><br>
+                        <img src="https:${gun.day.condition.icon}"><br>
+                        <span>${Math.round(gun.day.maxtemp_c)}°</span>
+                    </div>`;
+            });
+        } catch (e) { alert("⚠️ Veri hatası!"); }
+    }
+</script>
+</body>
+</html>
