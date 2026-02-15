@@ -7,59 +7,71 @@
     <title>İstanbul Hava Pro</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        body { margin: 0; background: #1a5bb0; color: white; font-family: sans-serif; padding: 15px; }
-        .menu-btn { position: fixed; top: 15px; left: 15px; font-size: 28px; cursor: pointer; z-index: 1001; background: rgba(0,0,0,0.3); padding: 5px 12px; border-radius: 8px; }
-        .side-menu { position: fixed; top: 0; left: -100%; width: 100%; height: 100%; background: #16213e; z-index: 1000; transition: 0.3s; padding: 80px 20px; box-sizing: border-box; overflow-y: auto; }
-        .side-menu.active { left: 0; }
-        .side-menu a { display: block; padding: 15px; color: #87CEEB; text-decoration: none; font-size: 18px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        :root { --bg: #1a5bb0; --card: rgba(255, 255, 255, 0.15); --border: rgba(255, 255, 255, 0.2); }
+        body { margin: 0; background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif; padding: 10px; }
         
-        .selects { display: flex; gap: 8px; margin: 60px 0 20px 0; }
-        select { flex: 1; padding: 12px; border-radius: 12px; border: none; background: rgba(255,255,255,0.2); color: white; font-weight: bold; outline: none; }
-        
-        .card { background: rgba(255,255,255,0.15); backdrop-filter: blur(10px); border-radius: 25px; padding: 20px; text-align: center; border: 1px solid rgba(255,255,255,0.2); }
-        .main-temp { font-size: 80px; font-weight: bold; margin: 10px 0; }
-        
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
-        .box { background: rgba(0,0,0,0.2); padding: 12px; border-radius: 15px; }
-        .box span { display: block; font-size: 11px; opacity: 0.7; margin-bottom: 4px; }
-        
-        .diag-box { background: rgba(0,0,0,0.25); border-radius: 20px; padding: 15px; margin-top: 20px; height: 280px; border: 1px solid rgba(255,255,255,0.1); }
+        /* 3 Ana Bölme (Çizgilerle Ayrılmış) */
+        .section-box { 
+            background: var(--card); 
+            backdrop-filter: blur(15px); 
+            border-radius: 20px; 
+            padding: 15px; 
+            margin-bottom: 15px; 
+            border: 1px solid var(--border);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+        }
+
+        .menu-btn { font-size: 24px; cursor: pointer; padding: 10px; }
+        .selects { display: flex; gap: 8px; margin-bottom: 15px; }
+        select { flex: 1; padding: 12px; border-radius: 10px; border: none; background: rgba(0,0,0,0.3); color: white; outline: none; }
+
+        .main-temp { font-size: 70px; font-weight: bold; margin: 5px 0; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .info-item { background: rgba(0,0,0,0.15); padding: 10px; border-radius: 12px; text-align: center; }
+        .info-item span { display: block; font-size: 10px; opacity: 0.7; text-transform: uppercase; }
+
+        /* 7 Günlük Liste */
+        .forecast-list { margin-top: 15px; border-top: 1px solid var(--border); padding-top: 10px; }
+        .day-row { display: flex; justify-content: space-between; padding: 8px 0; font-size: 14px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+
+        /* Profesyonel Diyagram */
+        #chartWrapper { height: 250px; position: relative; }
+        h4 { margin: 0 0 10px 0; font-weight: 500; font-size: 14px; color: #87CEEB; }
     </style>
 </head>
 <body>
 
-    <div class="menu-btn" onclick="toggleMenu()">☰</div>
-
-    <div class="side-menu" id="sideMenu">
-        <a href="javascript:void(0)" onclick="toggleMenu()">❌ Kapat</a>
-        <a href="mailto:Istanbulhava041@gmail.com">📧 Bize Ulaşın</a>
-        <div style="padding: 15px; font-size: 14px; color: #ccc;">
-            <h3>Hakkımızda</h3>
-            <p>Bu uygulama İstanbul'un 963 mahallesi için özel GEFS verileri kullanılarak hazırlanmıştır.</p>
-        </div>
-    </div>
+    <div class="menu-btn" onclick="alert('Bize Ulaşın: Istanbulhava041@gmail.com')">☰</div>
 
     <div class="selects">
         <select id="ilceList" onchange="ilceDegis()"></select>
         <select id="mahalleList" onchange="havaGetir()"></select>
     </div>
 
-    <div class="card">
-        <div id="yer" style="font-size: 18px; opacity: 0.9;">Yükleniyor...</div>
-        <div class="main-temp" id="derece">--°</div>
-        <div id="durum" style="font-size: 20px; font-weight: 300;">-</div>
-        
+    <div class="section-box">
+        <div id="yer" style="font-size: 16px; opacity: 0.8;">Yükleniyor...</div>
+        <center>
+            <div class="main-temp" id="derece">--°</div>
+            <div id="durum" style="font-size: 18px; margin-bottom: 15px;">Bekleyiniz...</div>
+        </center>
         <div class="grid">
-            <div class="box"><span>Hissedilen</span><b id="his">--°</b></div>
-            <div class="box"><span>Kar İhtimali</span><b id="kar">%--</b></div>
-            <div class="box"><span>Rüzgar</span><b id="ruz">-- km/s</b></div>
-            <div class="box"><span>UV İndeksi</span><b id="uv">--</b></div>
+            <div class="info-item"><span>Hissedilen</span><b id="his">--°</b></div>
+            <div class="info-item"><span>Kar İhtimali</span><b id="kar">%--</b></div>
+            <div class="info-item"><span>Rüzgar</span><b id="ruz">-- km/s</b></div>
+            <div class="info-item"><span>UV İndeksi</span><b id="uv">--</b></div>
         </div>
     </div>
 
-    <h4 style="margin: 25px 0 10px 5px; font-weight: 400; opacity: 0.8;">Haftalık Sıcaklık Diyagramı</h4>
-    <div class="diag-box">
-        <canvas id="grafik"></canvas>
+    <div class="section-box">
+        <h4>7 Günlük Detaylı Tahmin</h4>
+        <div id="forecastList" class="forecast-list"></div>
+    </div>
+
+    <div class="section-box">
+        <h4>GEFS Ensemble Diyagramı (Sıcaklık & Yağış)</h4>
+        <div id="chartWrapper">
+            <canvas id="grafik"></canvas>
+        </div>
     </div>
 
 <script>
@@ -107,8 +119,6 @@ const data = {
 
 let myChart = null;
 
-function toggleMenu() { document.getElementById("sideMenu").classList.toggle("active"); }
-
 window.onload = () => {
     const ilSel = document.getElementById("ilceList");
     Object.keys(data).sort((a,b)=>a.localeCompare(b,'tr')).forEach(i => ilSel.add(new Option(i,i)));
@@ -130,55 +140,66 @@ async function havaGetir() {
     document.getElementById("yer").innerText = mah + ", " + il;
 
     try {
-        const r = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=41.0082&longitude=28.9784&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,precipitation_probability&daily=temperature_2m_max,uv_index_max,precipitation_probability_max&timezone=auto`);
+        const r = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=41.0082&longitude=28.9784&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max,uv_index_max&hourly=temperature_2m,precipitation_probability&timezone=auto`);
         const d = await r.json();
 
+        // Anlık Veriler
         document.getElementById("derece").innerText = Math.round(d.current.temperature_2m) + "°";
         document.getElementById("his").innerText = Math.round(d.current.apparent_temperature) + "°";
         document.getElementById("ruz").innerText = d.current.wind_speed_10m + " km/s";
         document.getElementById("uv").innerText = d.daily.uv_index_max[0];
         
-        // Kar İhtimali Hesabı (Sıcaklık düşükse yağış olasılığını kar olarak göster)
-        let snowProb = d.current.temperature_2m < 3 ? d.daily.precipitation_probability_max[0] : 0;
-        document.getElementById("kar").innerText = "%" + snowProb;
+        let snowProb = d.daily.precipitation_probability_max[0];
+        document.getElementById("kar").innerText = "%" + (d.current.temperature_2m < 4 ? snowProb : 0);
 
         const codes = {0:"Güneşli", 1:"Açık", 2:"Az Bulutlu", 3:"Bulutlu", 45:"Sisli", 61:"Yağmurlu", 71:"Karlı", 80:"Sağanak"};
         document.getElementById("durum").innerText = codes[d.current.weather_code] || "Açık";
 
-        updateChart(d.daily.time, d.daily.temperature_2m_max);
-    } catch (e) { console.error(e); }
+        // 7 Günlük Liste Güncelleme
+        const listDiv = document.getElementById("forecastList");
+        listDiv.innerHTML = "";
+        d.daily.time.forEach((time, i) => {
+            const date = new Date(time).toLocaleDateString('tr-TR', { weekday: 'long' });
+            listDiv.innerHTML += `
+                <div class="day-row">
+                    <span>${date}</span>
+                    <span>%${d.daily.precipitation_probability_max[i]} 🌧️</span>
+                    <b>${Math.round(d.daily.temperature_2m_max[i])}° / ${Math.round(d.daily.temperature_2m_min[i])}°</b>
+                </div>`;
+        });
+
+        // Profesyonel Grafik Çizimi
+        drawComplexChart(d.hourly.time.slice(0, 168), d.hourly.temperature_2m.slice(0, 168), d.hourly.precipitation_probability.slice(0, 168));
+    } catch (e) { console.error("Hata:", e); }
 }
 
-function updateChart(labels, temps) {
+function drawComplexChart(labels, temps, rain) {
     const ctx = document.getElementById('grafik').getContext('2d');
     if(myChart) myChart.destroy();
     
     myChart = new Chart(ctx, {
-        type: 'line',
         data: {
-            labels: labels.map(l => l.split('-').reverse().slice(0,2).join('/')),
-            datasets: [{
-                label: 'Max Sıcaklık',
-                data: temps,
-                borderColor: '#00d2ff',
-                backgroundColor: 'rgba(0, 210, 255, 0.2)',
-                borderWidth: 3,
-                pointBackgroundColor: '#ffffff',
-                tension: 0.4,
-                fill: true
-            }]
+            labels: labels.map(l => l.split('T')[1]),
+            datasets: [
+                {
+                    type: 'line',
+                    label: 'Sıcaklık (°C)',
+                    data: temps,
+                    borderColor: '#ff4d4d',
+                    borderWidth: 2,
+                    pointRadius: 0,
+                    tension: 0.4,
+                    yAxisID: 'y',
+                },
+                {
+                    type: 'bar',
+                    label: 'Yağış %',
+                    data: rain,
+                    backgroundColor: 'rgba(0, 210, 255, 0.4)',
+                    yAxisID: 'y1',
+                }
+            ]
         },
         options: {
             responsive: true,
-            maintainAspectRatio: false,
-            plugins: { legend: { display: false } },
-            scales: {
-                x: { ticks: { color: 'rgba(255,255,255,0.7)' }, grid: { display: false } },
-                y: { ticks: { color: 'rgba(255,255,255,0.7)' }, grid: { color: 'rgba(255,255,255,0.1)' } }
-            }
-        }
-    });
-}
-</script>
-</body>
-</html>
+            maintainAspectRatio: fal
