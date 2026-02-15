@@ -132,4 +132,75 @@ const dataBank = {
 const coords = { "Adalar": [40.87, 29.13], "Arnavutköy": [41.18, 28.74], "Ataşehir": [40.99, 29.11], "Avcılar": [40.98, 28.71], "Bağcılar": [41.03, 28.83], "Bahçelievler": [40.99, 28.86], "Bakırköy": [40.97, 28.87], "Başakşehir": [41.09, 28.80], "Bayrampaşa": [41.04, 28.89], "Beşiktaş": [41.04, 29.00], "Beykoz": [41.11, 29.09], "Beylikdüzü": [40.99, 28.64], "Beyoğlu": [41.03, 28.97], "Büyükçekmece": [41.02, 28.59], "Çatalca": [41.14, 28.46], "Çekmeköy": [41.04, 29.21], "Esenler": [41.04, 28.87], "Esenyurt": [41.03, 28.67], "Eyüpsultan": [41.04, 28.93], "Fatih": [41.01, 28.94], "Gaziosmanpaşa": [41.05, 28.91], "Güngören": [41.02, 28.87], "Kadıköy": [40.99, 29.02], "Kağıthane": [41.08, 28.97], "Kartal": [40.89, 29.19], "Küçükçekmece": [41.00, 28.77], "Maltepe": [40.93, 29.14], "Pendik": [40.87, 29.23], "Sancaktepe": [41.00, 29.23], "Sarıyer": [41.16, 29.05], "Silivri": [41.07, 28.24], "Sultanbeyli": [40.96, 29.26], "Sultangazi": [41.10, 28.87], "Şile": [41.17, 29.61], "Şişli": [41.06, 28.98], "Tuzla": [40.82, 29.30], "Ümraniye": [41.03, 29.10], "Üsküdar": [41.02, 29.01], "Zeytinburnu": [40.99, 28.90] };
 
 function toggleMenu() { document.getElementById('sidebar').classList.toggle('open'); }
-function exitApp() { if(confirm("Çıkmak istiyor musunuz?")) 
+function exitApp() { if(confirm("Çıkmak istiyor musunuz?")) window.location.href = "about:blank"; }
+
+window.onload = () => {
+    const sel = document.getElementById("ilce");
+    Object.keys(dataBank).sort((a,b)=>a.localeCompare(b,'tr')).forEach(d => sel.add(new Option(d, d)));
+    sel.value = "Fatih";
+    loadMah();
+};
+
+function loadMah() {
+    const i = document.getElementById("ilce").value;
+    const mSel = document.getElementById("mah");
+    mSel.innerHTML = "";
+    dataBank[i].sort((a,b)=>a.localeCompare(b,'tr')).forEach(m => mSel.add(new Option(m, m)));
+    fetchData();
+}
+
+async function fetchData() {
+    const i = document.getElementById("ilce").value;
+    const m = document.getElementById("mah").value;
+    const [lat, lon] = coords[i];
+    document.getElementById("loc-name").innerText = `${m} / ${i}`;
+
+    try {
+        const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,apparent_temperature,weather_code,wind_speed_10m,precipitation&hourly=temperature_2m&daily=weather_code,temperature_2m_max,temperature_2m_min&timezone=auto`);
+        const data = await res.json();
+        
+        document.getElementById("temp-val").innerText = Math.round(data.current.temperature_2m) + "°";
+        document.getElementById("feels-like").innerText = `Hissedilen: ${Math.round(data.current.apparent_temperature)}°`;
+        
+        const codes = {0: "Açık", 1: "Açık", 2: "Az Bulutlu", 3: "Bulutlu", 45: "Sisli", 61: "Yağmurlu", 71: "Karlı"};
+        document.getElementById("weather-desc").innerText = (codes[data.current.weather_code] || "Açık").toUpperCase();
+
+        document.getElementById("sc-hali").innerText = data.current.precipitation > 0 ? "3/10" : "10/10";
+        document.getElementById("sc-mangal").innerText = data.current.temperature_2m > 18 ? "10/10" : "4/10";
+        document.getElementById("sc-vapur").innerText = data.current.wind_speed_10m > 35 ? "Riskli" : "Normal";
+        document.getElementById("sc-balik").innerText = "8/10";
+
+        updateChart(data.hourly.temperature_2m.slice(0, 24));
+
+        const fEl = document.getElementById("forecast");
+        fEl.innerHTML = "";
+        const days = ["Pzr", "Pzt", "Sal", "Çar", "Per", "Cum", "Cmt"];
+        for(let d=0; d<7; d++) {
+            const date = new Date(data.daily.time[d]);
+            fEl.innerHTML += `
+                <div class="forecast-card">
+                    <span style="font-size:12px; opacity:0.7;">${days[date.getDay()]}</span>
+                    <b>${Math.round(data.daily.temperature_2m_max[d])}°</b>
+                    <span style="font-size:10px; color:var(--accent);">${codes[data.daily.weather_code[d]] || "Açık"}</span>
+                </div>
+            `;
+        }
+    } catch(e) { document.getElementById("weather-desc").innerText = "HATA!"; }
+}
+
+let mainChart;
+function updateChart(temps) {
+    const ctx = document.getElementById('liveChart').getContext('2d');
+    if(mainChart) mainChart.destroy();
+    mainChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: Array.from({length: 24}, (_, i) => i + ":00"),
+            datasets: [{ data: temps, borderColor: '#00f2ff', tension: 0.4, fill: true, backgroundColor: 'rgba(0,242,255,0.1)', pointRadius: 0 }]
+        },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { display: false }, x: { grid: { display: false }, ticks: { color: '#fff', font: { size: 9 } } } } }
+    });
+}
+</script>
+</body>
+</html>
