@@ -3,97 +3,72 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="manifest" href="manifest.json">
-    <title>Hava Pro v2</title>
+    <title>Hava Pro Max 963</title>
     <style>
-        :root { --bg: #0f172a; --card: rgba(30, 41, 59, 0.7); --accent: #38bdf8; --sidebar: #1e293b; }
-        body { margin: 0; background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif; overflow-x: hidden; }
-        
-        /* HAMBURGER & SIDEBAR */
-        .nav-bar { position: fixed; top: 0; width: 100%; height: 60px; background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(10px); z-index: 100; display: flex; align-items: center; padding: 0 15px; border-bottom: 1px solid rgba(255,255,255,0.1); }
-        .menu-btn { font-size: 28px; cursor: pointer; background: none; border: none; color: white; }
-        .sidebar { position: fixed; top: 0; left: -300px; width: 280px; height: 100%; background: var(--sidebar); z-index: 101; transition: 0.3s; overflow-y: auto; padding: 20px; box-shadow: 10px 0 30px rgba(0,0,0,0.5); }
-        .sidebar.active { left: 0; }
-        .overlay { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:100; display:none; }
-        .overlay.active { display:block; }
-
-        /* MENÜ İÇERİĞİ */
-        .menu-item { padding: 15px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
-        .menu-item h4 { margin: 0 0 10px 0; color: var(--accent); font-size: 14px; }
-        .menu-link { display: block; padding: 10px 0; color: #ccc; text-decoration: none; font-size: 15px; }
-        select { width: 100%; padding: 12px; border-radius: 8px; border: none; background: #0f172a; color: white; margin-top: 5px; }
-
-        /* ANA EKRAN BÖLMELERİ */
-        .container { padding: 80px 15px 20px 15px; }
-        .section { background: var(--card); border: 1px solid rgba(255,255,255,0.1); border-radius: 24px; padding: 25px; margin-bottom: 15px; position: relative; }
-        
-        .temp-val { font-size: 85px; font-weight: 800; margin: 10px 0; text-align: center; }
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-        .kutu { background: rgba(0,0,0,0.2); padding: 15px; border-radius: 18px; text-align: center; }
-        .kutu b { color: var(--accent); font-size: 18px; }
-        .row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        :root { --bg: #020617; --card: #1e293b; --accent: #38bdf8; }
+        body { margin: 0; background: var(--bg); color: white; font-family: system-ui; overflow-x: hidden; }
+        .header { display: flex; align-items: center; padding: 15px; background: #0f172a; border-bottom: 1px solid #334155; position: sticky; top: 0; z-index: 10; }
+        .menu-btn { font-size: 24px; background: none; border: none; color: white; cursor: pointer; }
+        .sidebar { position: fixed; top: 0; left: -280px; width: 260px; height: 100%; background: #0f172a; z-index: 1000; transition: 0.4s; padding: 20px; box-shadow: 5px 0 15px rgba(0,0,0,0.5); overflow-y: auto; }
+        .sidebar.open { left: 0; }
+        .selectors { padding: 15px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; background: #0f172a; }
+        select { padding: 12px; border-radius: 10px; border: 1px solid #334155; background: var(--card); color: white; font-weight: bold; width: 100%; }
+        .container { padding: 15px; }
+        .bolme { background: var(--card); border-radius: 20px; padding: 20px; margin-bottom: 15px; text-align: center; }
+        .temp-big { font-size: 80px; font-weight: 900; margin: 10px 0; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .kutu { background: #0f172a; padding: 15px; border-radius: 15px; border: 1px solid #334155; }
+        .row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #334155; }
     </style>
 </head>
 <body>
 
-    <div class="nav-bar">
+    <div class="header">
         <button class="menu-btn" onclick="toggleMenu()">☰</button>
-        <span style="margin-left: 15px; font-weight: bold; letter-spacing: 1px;">İSTANBUL HAVA PRO</span>
+        <b style="margin-left: 15px;">İSTANBUL HAVA PRO</b>
     </div>
 
-    <div class="overlay" id="overlay" onclick="toggleMenu()"></div>
-
     <div class="sidebar" id="sidebar">
-        <div class="menu-item">
-            <h4>KONUM SEÇİMİ</h4>
-            <select id="ilce" onchange="loadMahalle()"></select>
-            <select id="mah" onchange="getWeather()"></select>
-        </div>
-        
-        <div class="menu-item">
-            <h4>UYGULAMA</h4>
-            <a href="#" class="menu-link" onclick="alert('v2.0.4 - Kar Takibi Aktif')">🚀 Versiyon Bilgisi</a>
-            <a href="#" class="menu-link" onclick="alert('Tema: Gece Mavisi')">🎨 Tema Değiştir</a>
-            <a href="#" class="menu-link" onclick="alert('Tüm veriler Open-Meteo API üzerinden anlık alınmaktadır.')">ℹ️ Veri Kaynağı</a>
-        </div>
+        <h3 style="color: var(--accent);">Hakkında</h3>
+        <p style="font-size: 14px; opacity: 0.8;">İstanbul geneli 39 ilçe ve 963 mahalle desteklenmektedir.</p>
+        <h3 style="color: var(--accent);">İletişim</h3>
+        <p style="font-size: 14px;">📧 <b>destek@havapro.com</b></p>
+        <h3 style="color: var(--accent);">Ayarlar</h3>
+        <p style="font-size: 14px;">Birim: °C<br>Dil: Türkçe</p>
+        <button onclick="toggleMenu()" style="width:100%; padding:10px; background:#ef4444; border:none; color:white; border-radius:8px; cursor:pointer;">Kapat</button>
+    </div>
 
-        <div class="menu-item">
-            <h4>KURUMSAL</h4>
-            <a href="#" class="menu-link" onclick="alert('Bu uygulama İstanbul geneli 963 mahalle için özel geliştirilmiştir.')">📖 Hakkında</a>
-            <a href="#" class="menu-link" onclick="alert('E-posta: destek@havapro.com\nTel: 0212 XXX XX XX')">📞 Bize Ulaşın</a>
-            <a href="#" class="menu-link" onclick="alert('Gizlilik Politikası: Verileriniz cihazınızda saklanır.')">🔒 Gizlilik</a>
-        </div>
-        
-        <button onclick="toggleMenu()" style="width:100%; padding:15px; margin-top:20px; background:var(--accent); border:none; border-radius:10px; color:white; font-weight:bold;">KAYDET VE KAPAT</button>
+    <div class="selectors">
+        <select id="ilce" onchange="loadMah()"></select>
+        <select id="mah" onchange="fetchWeather()"></select>
     </div>
 
     <div class="container">
-        <div class="section" style="background: linear-gradient(135deg, rgba(56,189,248,0.2), rgba(0,0,0,0));">
-            <div id="locName" style="text-align: center; opacity: 0.7; font-size: 15px;">Fatih, İstanbul</div>
-            <div class="temp-val" id="mainT">--°</div>
-            <div id="mainD" style="text-align: center; font-size: 20px; font-weight: 300;">--</div>
+        <div class="bolme">
+            <div id="loc" style="opacity: 0.7;">Yükleniyor...</div>
+            <div class="temp-big" id="t1">--°</div>
+            <div id="d1" style="font-size: 20px; font-weight: bold; color: var(--accent);">--</div>
         </div>
 
-        <div class="section">
+        <div class="bolme">
             <div class="grid">
-                <div class="kutu"><small>HİSSEDİLEN</small><br><b id="f1">--°</b></div>
-                <div class="kutu"><small>NEM</small><br><b id="f2">%--</b></div>
-                <div class="kutu"><small>RÜZGAR</small><br><b id="f3">-- km/h</b></div>
-                <div class="kutu"><small>BULUT</small><br><b id="f4">%--</b></div>
+                <div class="kutu"><small>HİSSEDİLEN</small><br><b id="v1">--°</b></div>
+                <div class="kutu"><small>NEM</small><br><b id="v2">%--</b></div>
+                <div class="kutu"><small>RÜZGAR</small><br><b id="v3">-- km/h</b></div>
+                <div class="kutu"><small>YAĞIŞ</small><br><b id="v4">%--</b></div>
             </div>
         </div>
 
-        <div class="section">
-            <div style="font-weight: bold; margin-bottom: 15px; color: var(--accent); font-size: 13px;">7 GÜNLÜK PROFESYONEL TAHMİN</div>
-            <div id="forecastList"></div>
+        <div class="bolme" style="text-align: left;">
+            <div style="font-weight: bold; margin-bottom: 10px; color: var(--accent);">7 GÜNLÜK TAHMİN</div>
+            <div id="forecast"></div>
         </div>
     </div>
 
 <script>
-// 963 MAHALLE VE TÜM İLÇELER (TAM LİSTE)
-const districts = {
+const data = {
     "Adalar": ["Burgazada", "Heybeliada", "Kınalıada", "Maden", "Nizam"],
-    "Arnavutköy": ["Anadolu", "Arnavutköy Merkez", "Atatürk", "Baklalı", "Balaban", "Boğazköy", "Bolluca", "Boyalık", "Çilingir", "Deliklikaya", "Dursunköy", "Durusu", "Fatih", "Hacımaşlı", "Hadımköy", "Haraççı", "Hastane", "Hicret", "İmrahor", "İslambey", "Karaburun", "Karlıbayır", "Mavigöl", "Mehmet Akif Ersoy", "Mustafa Kemal Paşa", "Nenehatun", "Ömerli", "Sazlıbosna", "Taşoluk", "Tayakadın", "Terkos", "Yassıören", "Yavuz Selim", "Yeniköy", "Yeşilbayır", "Yunus Emre"],
+    "Arnavutköy": ["Adnan Menderes", "Anadolu", "Arnavutköy Merkez", "Atatürk", "Baklalı", "Balaban", "Boğazköy", "Bolluca", "Boyalık", "Çilingir", "Deliklikaya", "Dursunköy", "Durusu", "Fatih", "Hacımaşlı", "Hadımköy", "Haraççı", "Hastane", "Hicret", "İmrahor", "İslambey", "Karaburun", "Karlıbayır", "Mavigöl", "Mehmet Akif Ersoy", "Mustafa Kemal Paşa", "Nenehatun", "Ömerli", "Sazlıbosna", "Taşoluk", "Tayakadın", "Terkos", "Yassıören", "Yavuz Selim", "Yeniköy", "Yeşilbayır", "Yunus Emre"],
     "Ataşehir": ["Aşık Veysel", "Atatürk", "Barbaros", "Esatpaşa", "Ferhatpaşa", "Fetih", "İçerenköy", "İnönü", "Kayışdağı", "Küçükbakkalköy", "Mevlana", "Mimar Sinan", "Mustafa Kemal", "Örnek", "Yeni Çamlıca", "Yeni Sahra", "Yenişehir"],
     "Avcılar": ["Ambarlı", "Cihangir", "Denizköşkler", "Firuzköy", "Gümüşpala", "Merkez", "Mustafa Kemal Paşa", "Tahtakale", "Üniversite", "Yeşilkent"],
     "Bağcılar": ["100. Yıl", "Bağlar", "Barbaros", "Çınar", "Demirkapı", "Evren", "Fatih", "Fevzi Çakmak", "Göztepe", "Güneşli", "Hürriyet", "İnönü", "Kazım Karabekir", "Kemalpaşa", "Kirazlı", "Mahmutbey", "Merkez", "Sancaktepe", "Yavuz Selim", "Yenigün", "Yenimahalle", "Yıldıztepe"],
@@ -111,7 +86,7 @@ const districts = {
     "Esenler": ["Birlik", "Çifte Havuzlar", "Davutpaşa", "Fatih", "Fevzi Çakmak", "Havaalanı", "Kazım Karabekir", "Kemer", "Menderes", "Mimar Sinan", "Namık Kemal", "Nene Hatun", "Oruçreis", "Tuna", "Turgut Reis", "Yavuz Selim"],
     "Esenyurt": ["Akçaburgaz", "Akevler", "Akşemseddin", "Ardıçlı", "Aşık Veysel", "Atatürk", "Bağlarçeşme", "Balıkyolu", "Barbaros Hayrettin Paşa", "Battalgazi", "Cumhuriyet", "Çınar", "Esenyurt Merkez", "Fatih", "Güzelyurt", "Hürriyet", "İncirtepe", "İnönü", "İstiklal", "Kıraç", "Mehmet Akif Ersoy", "Mehterçeşme", "Mevlana", "Namık Kemal", "Necip Fazıl Kısakürek", "Orhan Gazi", "Osmangazi", "Piri Reis", "Saadetdere", "Selahaddin Eyyubi", "Sultaniye", "Süleymaniye", "Şehitler", "Talatpaşa", "Turgut Özal", "Üçevler", "Yenikent", "Yeşilkent", "Yunusemre", "Zafer"],
     "Eyüpsultan": ["Ağaçlı", "Akpınar", "Akşemseddin", "Alibeyköy", "Çırçır", "Defterdar", "Düğmeciler", "Emniyettepe", "Esentepe", "Eyüp Merkez", "Göktürk", "Güzeltepe", "Işıklar", "İhsaniye", "İslambey", "Karadolap", "Kemerburgaz", "Mimar Sinan", "Mithatpaşa", "Nişancı", "Odayeri", "Pirinççi", "Rami Cuma", "Rami Yeni", "Sakarya", "Silahtarağa", "Topçular", "Yeşilpınar"],
-    "Fatih": ["Aksaray", "Akşemsettin", "Alemdar", "Ali Kuşçu", "Atikali", "Ayvansaray", "Balabanağa", "Balat", "Beyazıt", "Binbirdirek", "Cankurtaran", "Cerrahpaşa", "Cibali", "Demirtaş", "Derviş Ali", "Eminsinan", "Hacıkadın", "Haseki Sultan", "Hırka-i Şerif", "Hobyar", "Hoca Gıyasettin", "Hoca Paşa", "İskenderpaşa", "Kalenderhane", "Karagümrük", "Katip Kasım", "Kemalpaşa", "Kocamustafapaşa", "Küçükayasofya", "Mercan", "Mesihpaşa", "Mevlanakapı", "Mimar Hayrettin", "Mimar Kemalettin", "Molla Fenari", "Molla Gürani", "Molla Hüsrev", "Muhsine Hatun", "Nişanca", "Rüstempaşa", "Saraç İshak", "Sarıdemir", "Seyyid Ömer", "Silivrikapı", "Sultan Ahmet", "Sururi", "Süleymaniye", "Sümbül Efendi", "Şehremini", "Şehsuvar Bey", "Tahtakale", "Taya Hatun", "Topkapı", "Yavuz Sinan", "Yavuz Sultan Selim", "Yedikule", "Zeyrek"],
+    "Fatih": ["Aksaray", "Akşemsettin", "Alemdar", "Ali Kuşçu", "Atikali", "Ayvansaray", "Balabanağa", "Balat", "Beyazıt", "Binbirdirek", "Cankurtaran", "Cerrahpaşa", "Cibali", "Demirtaş", "Derviş Ali", "Eminsinan", "Hacıkadın", "Haseki Sultan", "Hırka-i Şerif", "Hobyar", "Hoca Paşa", "İskenderpaşa", "Kalenderhane", "Karagümrük", "Katip Kasım", "Kemalpaşa", "Kocamustafapaşa", "Küçükayasofya", "Mercan", "Mesihpaşa", "Mevlanakapı", "Mimar Hayrettin", "Mimar Kemalettin", "Molla Fenari", "Molla Gürani", "Molla Hüsrev", "Muhsine Hatun", "Nişanca", "Rüstempaşa", "Saraç İshak", "Sarıdemir", "Seyyid Ömer", "Silivrikapı", "Sultan Ahmet", "Sururi", "Süleymaniye", "Sümbül Efendi", "Şehremini", "Şehsuvar Bey", "Tahtakale", "Taya Hatun", "Topkapı", "Yavuz Sinan", "Yavuz Sultan Selim", "Yedikule", "Zeyrek"],
     "Gaziosmanpaşa": ["Bağlarbaşı", "Barbaros Hayrettin Paşa", "Fevzi Çakmak", "Hürriyet", "Karadeniz", "Karayolları", "Karlıtepe", "Kazım Karabekir", "Merkez", "Mevlana", "Pazariçi", "Sarıgöl", "Şemsipaşa", "Yeni Mahalle", "Yenidoğan", "Yıldıztabya"],
     "Güngören": ["Abdurrahman Nafiz Gürman", "Akıncılar", "Gençosman", "Güneştepe", "Güven", "Haznedar", "Mareşal Çakmak", "Mehmet Nesih Özmen", "Merkez", "Sanayi", "Tozkoparan"],
     "Kadıköy": ["19 Mayıs", "Acıbadem", "Bostancı", "Caddebostan", "Caferağa", "Dumlupınar", "Eğitim", "Erenköy", "Fenerbahçe", "Feneryolu", "Fikirtepe", "Göztepe", "Hasanpaşa", "Koşuyolu", "Kozyatağı", "Merdivenköy", "Osmanağa", "Rasimpaşa", "Sahrayı Cedit", "Suadiye", "Zühtüpaşa"],
@@ -128,63 +103,53 @@ const districts = {
     "Şile": ["Ağva Merkez", "Ahmetli", "Akçakese", "Alacalı", "Avcıkoru", "Balibey", "Bıçkıdere", "Bozgoca", "Bucaklı", "Çataklı", "Çavuş", "Çayırbaşı", "Çelebi", "Çengelli", "Darlık", "Değirmençayırı", "Doğancılı", "Erenler", "Esenceli", "Geredeli", "Göçe", "Gökmaslı", "Göksu", "Hacıkasım", "Hacıllı", "Hasanlı", "İmrendere", "İmrenli", "İsaköy", "Kabakoz", "Kadıköy", "Kalem", "Karabeyli", "Karakiraz", "Karamandere", "Kervansaray", "Kızılca", "Koru", "Kumbaba", "Kurfallı", "Kurna", "Meşrutiyet", "Oruçoğlu", "Osmanköy", "Ovacık", "Sahilköy", "Satmazlı", "Sofular", "Soğullu", "Sortullu", "Şuayipli", "Teke", "Ulupelit", "Üvezli", "Yazımanayır", "Yeniköy", "Yeşilvadi"],
     "Şişli": ["19 Mayıs", "Bozkurt", "Cumhuriyet", "Duatepe", "Ergenekon", "Esentepe", "Eskişehir", "Feriköy", "Fulya", "Gülbahar", "Halaskargazi", "Halide Edip Adıvar", "Halil Rıfat Paşa", "Harbiye", "Huzur", "İnönü", "İzzet Paşa", "Kaptanpaşa", "Kuştepe", "Mahmut Şevket Paşa", "Mecidiyeköy", "Merkez", "Meşrutiyet", "Paşa", "Teşvikiye", "Yayla"],
     "Tuzla": ["Akfırat", "Anadolu", "Aydınlı", "Aydıntepe", "Cami", "Evliya Çelebi", "Fatih", "İçmeler", "İstasyon", "Mescit", "Mimar Sinan", "Orhanlı", "Orta", "Postane", "Şifa", "Tepeören", "Yayla"],
-    "Ümraniye": ["Adem Yavuz", "Altınşehir", "Armağanevler", "Aşağı Dudullu", "Atakent", "Atatürk", "Cemil Meriç", "Çakmak", "Çamlık", "Dumlupınar", "Elmalıkent", "Esenevler", "Esenkents", "Esenşehir", "Fatih Sultan Mehmet", "Hekimbaşı", "Huzur", "Ihlamurkuyu", "İnkılap", "İstiklal", "Kazım Karabekir", "Madenler", "Mehmet Akif", "Namık Kemal", "Necip Fazıl", "Parseller", "Saray", "Site", "Şerifali", "Tantavi", "Tatlısu", "Tepeüstü", "Topağacı", "Yamanevler", "Yenişehir", "Yukarı Dudullu"],
+    "Ümraniye": ["Adem Yavuz", "Altınşehir", "Armağanevler", "Aşağı Dudullu", "Atakent", "Atatürk", "Cemil Meriç", "Çakmak", "Çamlık", "Dumlupınar", "Elmalıkent", "Esenevler", "Esenşehir", "Fatih Sultan Mehmet", "Hekimbaşı", "Huzur", "Ihlamurkuyu", "İnkılap", "İstiklal", "Kazım Karabekir", "Madenler", "Mehmet Akif", "Namık Kemal", "Necip Fazıl", "Parseller", "Saray", "Site", "Şerifali", "Tantavi", "Tatlısu", "Tepeüstü", "Topağacı", "Yamanevler", "Yenişehir", "Yukarı Dudullu"],
     "Üsküdar": ["Acıbadem", "Ahmediye", "Altunizade", "Aziz Mahmut Hüdayi", "Bahçelievler", "Barbaros", "Beylerbeyi", "Bulgurlu", "Burhaniye", "Cumhuriyet", "Çengelköy", "Ferah", "Güzeltepe", "İcadiye", "Kandilli", "Kısıklı", "Kirazlıtepe", "Kuleli", "Kuzguncuk", "Küçük Çamlıca", "Küçüksu", "Küplüce", "Mehmet Akif Ersoy", "Mimar Sinan", "Murat Reis", "Salacak", "Selami Ali", "Selimiye", "Sultantepe", "Ünalan", "Valide-i Atik", "Yavuztürk", "Zeynep Kamil"],
     "Zeytinburnu": ["Beştelsiz", "Çırpıcı", "Gökalp", "Kazlıçeşme", "Maltepe", "Merkezefendi", "Nuripaşa", "Seyitnizam", "Sümer", "Telsiz", "Veliefendi", "Yenidoğan", "Yeşiltepe"]
 };
 
-function toggleMenu() {
-    document.getElementById('sidebar').classList.toggle('active');
-    document.getElementById('overlay').classList.toggle('active');
-}
+function toggleMenu() { document.getElementById('sidebar').classList.toggle('open'); }
 
 window.onload = () => {
-    const iSelect = document.getElementById("ilce");
-    Object.keys(districts).sort((a,b)=>a.localeCompare(b,'tr')).forEach(d => iSelect.add(new Option(d, d)));
-    iSelect.value = "Fatih";
-    loadMahalle();
+    const iSel = document.getElementById("ilce");
+    Object.keys(data).sort((a,b)=>a.localeCompare(b,'tr')).forEach(i => iSel.add(new Option(i, i)));
+    iSel.value = "Fatih";
+    loadMah();
 };
 
-function loadMahalle() {
+function loadMah() {
     const ilce = document.getElementById("ilce").value;
-    const mSelect = document.getElementById("mah");
-    mSelect.innerHTML = "";
-    districts[ilce].sort((a,b)=>a.localeCompare(b,'tr')).forEach(m => mSelect.add(new Option(m, m)));
-    getWeather();
+    const mSel = document.getElementById("mah");
+    mSel.innerHTML = "";
+    data[ilce].sort((a,b)=>a.localeCompare(b,'tr')).forEach(m => mSel.add(new Option(m, m)));
+    fetchWeather();
 }
 
-async function getWeather() {
-    const il = document.getElementById("ilce").value;
+async function fetchWeather() {
+    const ilce = document.getElementById("ilce").value;
     const mah = document.getElementById("mah").value;
-    document.getElementById("locName").innerText = `${mah}, ${il}`;
+    document.getElementById("loc").innerText = `${mah}, ${ilce}`;
 
     try {
-        const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=41.00&longitude=28.97&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,cloud_cover&daily=temperature_2m_max,temperature_2m_min&timezone=auto`);
+        const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=41.01&longitude=28.97&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,precipitation_probability&daily=temperature_2m_max,temperature_2m_min&timezone=auto`);
         const d = await res.json();
 
-        // Bölme 1
-        document.getElementById("mainT").innerText = Math.round(d.current.temperature_2m) + "°";
+        document.getElementById("t1").innerText = Math.round(d.current.temperature_2m) + "°";
+        document.getElementById("v1").innerText = Math.round(d.current.apparent_temperature) + "°";
+        document.getElementById("v2").innerText = "%" + d.current.relative_humidity_2m;
+        document.getElementById("v3").innerText = Math.round(d.current.wind_speed_10m) + " km/h";
+        document.getElementById("v4").innerText = "%" + (d.current.precipitation_probability || 0);
+
         const codes = {0:"Güneşli", 1:"Açık", 2:"Az Bulutlu", 3:"Bulutlu", 61:"Yağmurlu", 71:"Karlı"};
-        document.getElementById("mainD").innerText = codes[d.current.weather_code] || "Açık";
+        document.getElementById("d1").innerText = codes[d.current.weather_code] || "Açık";
 
-        // Bölme 2
-        document.getElementById("f1").innerText = Math.round(d.current.apparent_temperature) + "°";
-        document.getElementById("f2").innerText = "%" + d.current.relative_humidity_2m;
-        document.getElementById("f3").innerText = Math.round(d.current.wind_speed_10m) + " km/h";
-        document.getElementById("f4").innerText = "%" + d.current.cloud_cover;
-
-        // Bölme 3
-        const list = document.getElementById("forecastList");
-        list.innerHTML = "";
+        const fList = document.getElementById("forecast");
+        fList.innerHTML = "";
         d.daily.time.forEach((t, i) => {
             const day = new Date(t).toLocaleDateString('tr', {weekday:'long'});
-            list.innerHTML += `
-                <div class="row">
-                    <span>${day}</span>
-                    <b>${Math.round(d.daily.temperature_2m_max[i])}° / ${Math.round(d.daily.temperature_2m_min[i])}°</b>
-                </div>`;
+            fList.innerHTML += `<div class="row"><span>${day}</span><b>${Math.round(d.daily.temperature_2m_max[i])}° / ${Math.round(d.daily.temperature_2m_min[i])}°</b></div>`;
         });
-    } catch(e) { console.error("Veri Hatası"); }
+    } catch(e) { console.error("Hata!"); }
 }
 </script>
 </body>
