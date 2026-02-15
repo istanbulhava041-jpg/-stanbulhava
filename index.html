@@ -3,25 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>İstanbul Hava Pro v4.7</title>
+    <title>İstanbul Hava Pro v4.9</title>
     <link rel="manifest" href="data:application/manifest+json,{%22name%22:%22İstanbul%20Hava%20Pro%22,%22short_name%22:%22HavaPro%22,%22start_url%22:%22.%22,%22display%22:%22standalone%22,%22background_color%22:%22%23020617%22,%22theme_color%22:%22%2338bdf8%22}">
     <style>
         :root { --bg: #020617; --card: #1e293b; --accent: #38bdf8; --warn: #f43f5e; --safe: #10b981; }
         body { margin: 0; background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif; }
         .header { display: flex; align-items: center; padding: 15px; background: #0f172a; border-bottom: 2px solid var(--accent); position: sticky; top: 0; z-index: 100; }
-        .sidebar { position: fixed; top: 0; left: -300px; width: 280px; height: 100%; background: #0f172a; z-index: 1000; transition: 0.4s; padding: 25px; box-shadow: 10px 0 20px black; }
+        .sidebar { position: fixed; top: 0; left: -300px; width: 280px; height: 100%; background: #0f172a; z-index: 1000; transition: 0.3s; padding: 25px; border-right: 1px solid var(--accent); }
         .sidebar.open { left: 0; }
         .selectors { padding: 15px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; background: #0f172a; }
-        select { padding: 12px; border-radius: 12px; border: 1px solid #334155; background: var(--card); color: white; font-weight: bold; width: 100%; font-size: 14px; }
+        select { padding: 12px; border-radius: 12px; border: 1px solid #334155; background: var(--card); color: white; font-weight: bold; width: 100%; font-size: 14px; outline: none; }
         .container { padding: 15px; max-width: 600px; margin: auto; }
         .bolme { background: var(--card); border-radius: 20px; padding: 18px; margin-bottom: 15px; border: 1px solid rgba(255,255,255,0.05); }
         .badge { background: var(--accent); color: #000; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: bold; margin-bottom: 10px; display: inline-block; }
         .grid-custom { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
         .kutu { background: #0f172a; padding: 10px; border-radius: 12px; text-align: center; font-size: 11px; }
         .kutu b { display: block; font-size: 14px; color: var(--accent); margin-top: 4px; }
-        .info-row { display: flex; justify-content: space-between; font-size: 14px; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .btn-link { display: block; width: 100%; padding: 15px; background: rgba(255,255,255,0.05); color: white; text-decoration: none; border-radius: 12px; margin-bottom: 10px; font-size: 14px; border: 1px solid rgba(255,255,255,0.1); text-align: center; }
+        .btn-link:active { background: var(--accent); color: black; }
         #temp-val { font-size: 75px; font-weight: 900; margin: 10px 0; display: block; }
-        #alert-box { display: none; background: var(--warn); color: white; padding: 12px; border-radius: 12px; margin-bottom: 15px; font-weight: bold; text-align: center; }
     </style>
 </head>
 <body>
@@ -32,11 +32,14 @@
     </div>
 
     <div id="sidebar" class="sidebar">
-        <h3 style="color: var(--accent);">Bize Ulaşın</h3>
-        <p style="font-size: 13px;">📧 <b>istanbulhava041@gmail.com</b></p>
-        <hr style="opacity:0.1">
-        <p style="font-size: 12px;">v4.7 | 963 Mahalle</p>
-        <button onclick="toggleMenu()" style="width:100%; padding:10px; background:red; border:none; color:white; border-radius:8px; cursor:pointer;">KAPAT</button>
+        <h3 style="color: var(--accent); margin-top:0;">İstanbul Menü</h3>
+        <a href="https://tumas.iski.gov.tr/baraj-doluluk" target="_blank" class="btn-link">💧 İSKİ Baraj Doluluk</a>
+        <a href="https://www.istanbuleczaciodasi.org.tr/nobetci-eczane" target="_blank" class="btn-link">🏥 Nöbetçi Eczaneler</a>
+        <a href="https://uym.ibb.gov.tr/" target="_blank" class="btn-link">🚗 Canlı Yol Durumu</a>
+        <hr style="opacity:0.1; margin: 20px 0;">
+        <p style="font-size: 12px; opacity: 0.6;">İletişim:</p>
+        <p style="font-size: 13px; font-weight: bold;">istanbulhava041@gmail.com</p>
+        <button onclick="toggleMenu()" style="width:100%; padding:15px; background:var(--warn); border:none; color:white; border-radius:12px; margin-top:30px; font-weight:bold; cursor:pointer;">KAPAT</button>
     </div>
 
     <div class="selectors">
@@ -45,8 +48,6 @@
     </div>
 
     <div class="container">
-        <div id="alert-box">⚠️ Yağış Bekleniyor, Şemsiye Al!</div>
-
         <div class="bolme" style="text-align:center;">
             <div id="loc-display" style="opacity: 0.6;">Yükleniyor...</div>
             <span id="temp-val">--°</span>
@@ -57,20 +58,13 @@
         <div class="bolme">
             <span class="badge">Aktivite Analizi</span>
             <div class="grid-custom">
-                <div class="kutu">⚽ Halı Saha<b id="hali">-</b></div>
-                <div class="kutu">🔥 Mangal<b id="mangal">-</b></div>
-                <div class="kutu">🚢 Vapur<b id="vapur">-</b></div>
+                <div class="kutu">⚽ Maç<b id="hali">-</b></div>
+                <div class="kutu">🔥 Piknik<b id="mangal">-</b></div>
+                <div class="kutu)🚢 Vapur<b id="vapur">-</b></div>
                 <div class="kutu">🎣 Balık<b id="balik">-</b></div>
-                <div class="kutu">🌊 Deniz S.<b>8.5°C</b></div>
-                <div class="kutu">🍃 Hava K.<b>İyi</b></div>
+                <div class="kutu">💧 Baraj<b>%74</b></div>
+                <div class="kutu">🍃 Hava<b>İyi</b></div>
             </div>
-        </div>
-
-        <div class="bolme">
-            <span class="badge">İSKİ Canlı Veri</span>
-            <div class="info-row"><span>💧 Baraj Doluluk</span><b style="color:var(--safe)" id="baraj-val">%--</b></div>
-            <div class="info-row"><span>🏥 Nöbetçi Eczane</span><b style="color:var(--accent)">Görüntüle</b></div>
-            <div class="info-row"><span>⚡ Kesinti Takibi</span><b>Arıza Yok</b></div>
         </div>
 
         <div class="bolme">
@@ -80,7 +74,7 @@
     </div>
 
 <script>
-// 963 MAHALLE VERİ SETİ
+// İSTANBUL 39 İLÇE VE TÜM MAHALLELER (963 MAHALLE)
 const districts = {
     "Adalar": ["Burgazada", "Heybeliada", "Kınalıada", "Maden", "Nizam"],
     "Arnavutköy": ["Adnan Menderes", "Anadolu", "Arnavutköy Merkez", "Atatürk", "Baklalı", "Balaban", "Boğazköy", "Bolluca", "Boyalık", "Çilingir", "Deliklikaya", "Dursunköy", "Durusu", "Fatih", "Hacımaşlı", "Hadımköy", "Haraççı", "Hastane", "Hicret", "İmrahor", "İslambey", "Karaburun", "Karlıbayır", "Mavigöl", "Mehmet Akif Ersoy", "Mustafa Kemal Paşa", "Nenehatun", "Ömerli", "Sazlıbosna", "Taşoluk", "Tayakadın", "Terkos", "Yassıören", "Yavuz Selim", "Yeniköy", "Yeşilbayır", "Yunus Emre"],
@@ -130,7 +124,6 @@ window.onload = () => {
     Object.keys(districts).sort((a,b)=>a.localeCompare(b,'tr')).forEach(d => iSel.add(new Option(d, d)));
     iSel.value = "Fatih";
     loadMah();
-    updateBaraj();
 };
 
 function loadMah() {
@@ -139,13 +132,6 @@ function loadMah() {
     mSel.innerHTML = "";
     districts[ilce].sort((a,b)=>a.localeCompare(b,'tr')).forEach(m => mSel.add(new Option(m, m)));
     fetchData();
-}
-
-// İSKİ VERİLERİYLE UYUMLU BARAJ GÜNCELLEME
-function updateBaraj() {
-    // 2026 Şubat başı itibariyle İstanbul baraj ortalaması yaklaşık %74-78 bandındadır.
-    const iskiLive = (74.82 + (Math.random() * 0.5)).toFixed(2);
-    document.getElementById("baraj-val").innerText = "%" + iskiLive;
 }
 
 async function fetchData() {
@@ -165,25 +151,14 @@ async function fetchData() {
         const codes = {0:"Güneşli", 1:"Açık", 2:"Az Bulutlu", 3:"Bulutlu", 45:"Sisli", 61:"Yağmurlu", 71:"Karlı"};
         document.getElementById("desc-val").innerText = codes[d.current.weather_code] || "Açık";
 
-        document.getElementById("alert-box").style.display = p > 40 ? "block" : "none";
         document.getElementById("hali").innerText = (t > 12 && p < 20) ? "10/10" : "3/10";
         document.getElementById("mangal").innerText = (w < 20 && p < 10) ? "9/10" : "1/10";
-        document.getElementById("vapur").innerText = w > 45 ? "İptal" : "Normal";
-        document.getElementById("balik").innerText = t < 15 ? "Çok İyi" : "Orta";
+        document.getElementById("vapur").innerText = w > 45 ? "İptal" : "Açık";
+        document.getElementById("balik").innerText = t < 15 ? "İyi" : "Zayıf";
         
-        let giyim = "";
-        if(t > 20) giyim = "👕 Tişört yeterli.";
-        else if(t > 10) giyim = "🧥 Ceket veya hırka al.";
-        else giyim = "🧣 Kalın mont ve atkı al.";
-        document.getElementById("giyim-val").innerText = giyim;
+        document.getElementById("giyim-val").innerText = t > 18 ? "👕 İnce giyin." : "🧥 Ceketini al.";
 
         const fDiv = document.getElementById("forecast");
         fDiv.innerHTML = "";
-        d.daily.time.forEach((time, i) => {
-            fDiv.innerHTML += `<div class="info-row"><span>${new Date(time).toLocaleDateString('tr', {weekday:'short'})}</span><b>${Math.round(d.daily.temperature_2m_max[i])}° / ${Math.round(d.daily.temperature_2m_min[i])}°</b></div>`;
-        });
-    } catch(e) { document.getElementById("desc-val").innerText = "Bağlantı Yok!"; }
-}
-</script>
-</body>
-</html>
+        d.daily.time.slice(0, 5).forEach((time, i) => {
+            fDiv.innerHTML += `<div style="display:flex; justify-content:s
