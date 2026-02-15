@@ -171,4 +171,21 @@ async function getWeather() {
         document.getElementById("f1").innerText = Math.round(d.current.apparent_temperature) + "°";
         document.getElementById("f2").innerText = "%" + d.current.relative_humidity_2m;
         document.getElementById("f3").innerText = Math.round(d.current.wind_speed_10m) + " km/h";
-        document.getElementById("f4").innerText = "%" + d.curre
+        document.getElementById("f4").innerText = "%" + d.current.cloud_cover;
+
+        // Bölme 3
+        const list = document.getElementById("forecastList");
+        list.innerHTML = "";
+        d.daily.time.forEach((t, i) => {
+            const day = new Date(t).toLocaleDateString('tr', {weekday:'long'});
+            list.innerHTML += `
+                <div class="row">
+                    <span>${day}</span>
+                    <b>${Math.round(d.daily.temperature_2m_max[i])}° / ${Math.round(d.daily.temperature_2m_min[i])}°</b>
+                </div>`;
+        });
+    } catch(e) { console.error("Veri Hatası"); }
+}
+</script>
+</body>
+</html>
