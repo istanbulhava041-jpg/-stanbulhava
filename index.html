@@ -146,4 +146,48 @@ async function fetchData() {
         const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,apparent_temperature,weather_code,wind_speed_10m,precipitation&hourly=temperature_2m&daily=weather_code,temperature_2m_max,temperature_2m_min&timezone=auto`);
         const data = await res.json();
         
-  
+        document.getElementById("temp-val").innerText = Math.round(data.current.temperature_2m) + "°";
+        document.getElementById("feels-like").innerText = `Hissedilen: ${Math.round(data.current.apparent_temperature)}°`;
+        
+        const codes = {0: "Açık", 1: "Açık", 2: "Az Bulutlu", 3: "Bulutlu", 61: "Yağmurlu", 71: "Karlı"};
+        document.getElementById("weather-desc").innerText = (codes[data.current.weather_code] || "Açık").toUpperCase();
+
+        document.getElementById("sc-hali").innerText = data.current.precipitation > 0 ? "3/10" : "10/10";
+        document.getElementById("sc-mangal").innerText = data.current.temperature_2m > 18 ? "10/10" : "4/10";
+        document.getElementById("sc-vapur").innerText = data.current.wind_speed_10m > 35 ? "Riskli" : "Normal";
+        document.getElementById("sc-balik").innerText = "8/10";
+
+        updateChart(data.hourly.temperature_2m.slice(0, 24));
+
+        const fEl = document.getElementById("forecast");
+        fEl.innerHTML = "";
+        const days = ["Pzr", "Pzt", "Sal", "Çar", "Per", "Cum", "Cmt"];
+        for(let d=0; d<7; d++) {
+            const date = new Date(data.daily.time[d]);
+            fEl.innerHTML += `
+                <div class="forecast-card">
+                    <span style="font-size:12px; opacity:0.7;">${days[date.getDay()]}</span>
+                    <b>${Math.round(data.daily.temperature_2m_max[d])}°</b>
+                    <span style="font-size:10px; color:var(--accent);">${codes[data.daily.weather_code[d]] || "Açık"}</span>
+                </div>
+            `;
+        }
+    } catch(e) { document.getElementById("weather-desc").innerText = "HATA!"; }
+}
+
+let mainChart;
+function updateChart(temps) {
+    const ctx = document.getElementById('liveChart').getContext('2d');
+    if(mainChart) mainChart.destroy();
+    mainChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: Array.from({length: 24}, (_, i) => i + ":00"),
+            datasets: [{ data: temps, borderColor: '#00f2ff', tension: 0.4, fill: true, backgroundColor: 'rgba(0,242,255,0.05)', pointRadius: 0 }]
+        },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { display: false }, x: { grid: { display: false }, ticks: { color: '#fff', font: { size: 9 } } } } }
+    });
+}
+</script>
+</body>
+</html>
