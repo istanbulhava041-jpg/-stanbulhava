@@ -3,62 +3,71 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="manifest" href="manifest.json">
-    <title>İstanbul Hava Pro 963</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <title>İstanbul Hava Pro</title>
     <style>
-        :root { --bg: #1a5bb0; --card: rgba(255, 255, 255, 0.15); --line: rgba(255, 255, 255, 0.2); }
-        body { margin: 0; background: var(--bg); color: white; font-family: sans-serif; padding: 10px; }
+        :root { --bg: #1e3a8a; --card: rgba(255, 255, 255, 0.12); --border: rgba(255, 255, 255, 0.2); }
+        body { margin: 0; background: #111827; color: white; font-family: 'Segoe UI', sans-serif; padding: 12px; }
         
-        .section { background: var(--card); border: 1px solid var(--line); border-radius: 20px; padding: 15px; margin-bottom: 12px; backdrop-filter: blur(10px); }
-        
-        .selects { display: flex; gap: 8px; margin-bottom: 10px; }
-        select { flex: 1; padding: 12px; border-radius: 10px; border: none; background: #000; color: #fff; font-weight: bold; }
+        /* 3 ANA BÖLME (ÇİZGİ) */
+        .section { 
+            background: var(--card); 
+            border: 1px solid var(--border); 
+            border-radius: 16px; 
+            padding: 20px; 
+            margin-bottom: 12px; 
+            backdrop-filter: blur(8px);
+        }
 
-        .temp-big { font-size: 70px; font-weight: bold; margin: 5px 0; }
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .box { background: rgba(0,0,0,0.2); padding: 12px; border-radius: 15px; text-align: center; }
-        
-        .row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.1); }
-        #chartArea { height: 220px; width: 100%; }
-        h4 { margin: 0 0 10px 0; color: #87CEEB; text-transform: uppercase; font-size: 13px; }
+        .selects { display: flex; gap: 8px; margin-bottom: 12px; }
+        select { flex: 1; padding: 12px; border-radius: 10px; border: none; background: #1f2937; color: white; font-weight: bold; font-size: 14px; }
+
+        /* 1. BÖLME: DERECELER */
+        .temp-big { font-size: 85px; font-weight: 800; line-height: 1; margin: 10px 0; letter-spacing: -2px; }
+        .desc { font-size: 22px; font-weight: 300; opacity: 0.9; }
+
+        /* 2. BÖLME: DETAYLAR */
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .box { background: rgba(0,0,0,0.3); padding: 15px; border-radius: 12px; text-align: center; }
+        .box small { font-size: 10px; opacity: 0.6; display: block; text-transform: uppercase; margin-bottom: 4px; }
+        .box b { font-size: 18px; color: #60a5fa; }
+
+        /* 3. BÖLME: 7 GÜNLÜK TAHMİN */
+        .row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .row span { font-size: 15px; }
+        .row b { color: #f87171; }
     </style>
 </head>
 <body>
 
     <div class="selects">
-        <select id="ilce" onchange="initMahalle()"></select>
-        <select id="mahalle" onchange="getHava()"></select>
+        <select id="ilce" onchange="updateMah()"></select>
+        <select id="mah" onchange="getData()"></select>
+    </div>
+
+    <div class="section" style="text-align: center; background: linear-gradient(to bottom, rgba(30,58,138,0.5), rgba(0,0,0,0));">
+        <div id="loc" style="font-size: 16px; opacity: 0.7;">Yükleniyor...</div>
+        <div class="temp-big" id="mainTemp">--°</div>
+        <div class="desc" id="mainDesc">--</div>
     </div>
 
     <div class="section">
-        <center>
-            <div id="loc" style="opacity: 0.7; font-size: 14px;">Yükleniyor...</div>
-            <div class="temp-big" id="derece">--°</div>
-            <div id="durum" style="font-size: 20px; margin-bottom: 15px;">--</div>
-        </center>
         <div class="grid">
-            <div class="box"><small>HİSSEDİLEN</small><br><b id="his">--°</b></div>
-            <div class="box"><small>KAR İHTİMALİ</small><br><b id="kar">%--</b></div>
+            <div class="box"><small>HİSSEDİLEN</small><b id="f1">--°</b></div>
+            <div class="box"><small>NEM</small><b id="f2">%--</b></div>
+            <div class="box"><small>RÜZGAR</small><b id="f3">-- km/h</b></div>
+            <div class="box"><small>BULUT</small><b id="f4">%--</b></div>
         </div>
     </div>
 
     <div class="section">
-        <h4>7 Günlük Tahmin</h4>
-        <div id="liste"></div>
-    </div>
-
-    <div class="section">
-        <h4>Hava Tahmin Diyagramı</h4>
-        <div id="chartArea">
-            <canvas id="grafik"></canvas>
-        </div>
+        <div style="font-weight: bold; margin-bottom: 10px; font-size: 14px; opacity: 0.5;">HAFTALIK TAHMİN</div>
+        <div id="forecast"></div>
     </div>
 
 <script>
-const districts = {
+const data = {
     "Adalar": ["Burgazada", "Heybeliada", "Kınalıada", "Maden", "Nizam"],
-    "Arnavutköy": ["Adnan Menderes", "Anadolu", "Arnavutköy Merkez", "Atatürk", "Baklalı", "Balaban", "Boğazköy", "Bolluca", "Boyalık", "Çilingir", "Deliklikaya", "Dursunköy", "Durusu", "Fatih", "Hacımaşlı", "Hadımköy", "Haraççı", "Hastane", "Hicret", "İmrahor", "İslambey", "Karaburun", "Karlıbayır", "M. Fevzi Çakmak", "Mavigöl", "Mehmet Akif Ersoy", "Mustafa Kemal Paşa", "Nenehatun", "Ömerli", "Sazlıbosna", "Taşoluk", "Tayakadın", "Terkos", "Yassıören", "Yavuz Selim", "Yeniköy", "Yeşilbayır", "Yunus Emre"],
+    "Arnavutköy": ["Anadolu", "Arnavutköy Merkez", "Atatürk", "Baklalı", "Balaban", "Boğazköy", "Bolluca", "Boyalık", "Çilingir", "Deliklikaya", "Dursunköy", "Durusu", "Fatih", "Hacımaşlı", "Hadımköy", "Haraççı", "Hastane", "Hicret", "İmrahor", "İslambey", "Karaburun", "Karlıbayır", "Mavigöl", "Mehmet Akif Ersoy", "Mustafa Kemal Paşa", "Nenehatun", "Ömerli", "Sazlıbosna", "Taşoluk", "Tayakadın", "Terkos", "Yassıören", "Yavuz Selim", "Yeniköy", "Yeşilbayır", "Yunus Emre"],
     "Ataşehir": ["Aşık Veysel", "Atatürk", "Barbaros", "Esatpaşa", "Ferhatpaşa", "Fetih", "İçerenköy", "İnönü", "Kayışdağı", "Küçükbakkalköy", "Mevlana", "Mimar Sinan", "Mustafa Kemal", "Örnek", "Yeni Çamlıca", "Yeni Sahra", "Yenişehir"],
     "Avcılar": ["Ambarlı", "Cihangir", "Denizköşkler", "Firuzköy", "Gümüşpala", "Merkez", "Mustafa Kemal Paşa", "Tahtakale", "Üniversite", "Yeşilkent"],
     "Bağcılar": ["100. Yıl", "Bağlar", "Barbaros", "Çınar", "Demirkapı", "Evren", "Fatih", "Fevzi Çakmak", "Göztepe", "Güneşli", "Hürriyet", "İnönü", "Kazım Karabekir", "Kemalpaşa", "Kirazlı", "Mahmutbey", "Merkez", "Sancaktepe", "Yavuz Selim", "Yenigün", "Yenimahalle", "Yıldıztepe"],
@@ -66,7 +75,7 @@ const districts = {
     "Bakırköy": ["Ataköy 1.", "Ataköy 2-5-6.", "Ataköy 3-4-11.", "Ataköy 7-8-9-10.", "Basınköy", "Cevizlik", "Kartaltepe", "Osmaniye", "Sakızağacı", "Şenlikköy", "Yenimahalle", "Yeşilköy", "Yeşilyurt", "Zeytinlik", "Zuhuratbaba"],
     "Başakşehir": ["Altınşehir", "Bahçeşehir 1.", "Bahçeşehir 2.", "Başak", "Başakşehir", "Güvercintepe", "İkitelli OSB", "Kayabaşı", "Şahintepe", "Şamlar", "Ziya Gökalp"],
     "Bayrampaşa": ["Altıntepsi", "Cevatpaşa", "İsmet Paşa", "Kartaltepe", "Kocatepe", "Muratpaşa", "Orta", "Terazidere", "Vatan", "Yenidoğan", "Yıldırım"],
-    "Beşiktaş": ["Abbasağa", "Akat", "Arnavutköy", "Balmumcu", "Bebek", "Cihannüma", "Dikilitaş", "Etiler", "Gayrettepe", "Konaklar", "Kuruçeşme", "Kültür", "Levazım", "Levent", "Mecidiye", "Muradiye", "Nisbetiye", "Ortaköy", "Sinanpaşa", "Türkali", "Ulus", "Vişnezade", "Yıldız"],
+    "Beşiktaş": ["Abbasağa", "Akatlar", "Arnavutköy", "Balmumcu", "Bebek", "Cihannüma", "Dikilitaş", "Etiler", "Gayrettepe", "Konaklar", "Kuruçeşme", "Kültür", "Levazım", "Levent", "Mecidiye", "Muradiye", "Nisbetiye", "Ortaköy", "Sinanpaşa", "Türkali", "Ulus", "Vişnezade", "Yıldız"],
     "Beykoz": ["Acarlar", "Akbaba", "Alibahadır", "Anadolu Hisarı", "Anadolu Kavağı", "Anadolufeneri", "Baklacı", "Bozhane", "Cumhuriyet", "Çamlıbahçe", "Çengeldere", "Çiftlik", "Çiğdem", "Çubuklu", "Dereseki", "Elmalı", "Fatih", "Göksu", "Göllü", "Görele", "Göztepe", "Gümüşsuyu", "İncirköy", "İshaklı", "Kanlıca", "Kavacık", "Kaynarca", "Kılıçlı", "Mahmutşevketpaşa", "Merkez", "Ortaçeşme", "Öyümce", "Örnekköy", "Paşabahçe", "Paşamandıra", "Polonezköy", "Poyrazköy", "Riva", "Rüzgarlıbahçe", "Soğuksu", "Tokatköy", "Yalıköy", "Yavuz Selim", "Yenimahalle", "Zerzavatçı"],
     "Beylikdüzü": ["Adnan Kahveci", "Barış", "Büyükşehir", "Cumhuriyet", "Dereağzı", "Gürpınar", "Kavaklı", "Marmara", "Sahil", "Yakuplu"],
     "Beyoğlu": ["Arap Cami", "Asmalı Mescit", "Bedrettin", "Bereketzade", "Bostan", "Bülbül", "Camiikebir", "Cihangir", "Çatmamescit", "Çukur", "Emekyemez", "Evliya Çelebi", "Fetihtepe", "Firuzağa", "Gümüşsuyu", "Hacıahmet", "Hacımimi", "Halıcıoğlu", "Hüseyinayni", "İstiklal", "Kadımehmet", "Kalyoncukulluğu", "Kaptanpaşa", "Katipmustafaçelebi", "Keçecipiri", "Kemankeş", "Kılıçalipaşa", "Kocatepe", "Kulaksız", "Kuloğlu", "Küçükpiyale", "Müeyyetzade", "Örnektepe", "Piripaşa", "Piyalepaşa", "Pürtelaş", "Sururi", "Sütlüce", "Şahkulu", "Şehitmuhtar", "Tomtom", "Yahya Kahya", "Yenişehir"],
@@ -86,77 +95,65 @@ const districts = {
     "Maltepe": ["Altayçeşme", "Altıntepe", "Aydınevler", "Bağlarbaşı", "Başıbüyük", "Büyükbakkalköy", "Cevizli", "Çınar", "Esenkent", "Feyzullah", "Fındıklı", "Girne", "Gülensu", "Gülsuyu", "İdealtepe", "Küçükyalı", "Yalı", "Zümrütevler"],
     "Pendik": ["Ahmet Yesevi", "Bağlarbaşı", "Ballıca", "Batı", "Çamçeşme", "Çamlık", "Çınardere", "Doğu", "Dumlupınar", "Emirli", "Ertuğrul Gazi", "Esenler", "Esenyalı", "Fatih", "Fevzi Çakmak", "Göçbeyli", "Güllü Bağlar", "Güzelyalı", "Harmandere", "Kavakpınar", "Kaynarca", "Kurna", "Kurtdoğmuş", "Kurtköy", "Orhangazi", "Orta", "Ramazanoğlu", "Sanayi", "Sapan Bağları", "Sülüntepe", "Şeyhli", "Velibaba", "Yayalar", "Yeni Mahalle", "Yenişehir", "Yeşilbağlar"],
     "Sancaktepe": ["Abdurrahmangazi", "Akpınar", "Atatürk", "Emek", "Eyüp Sultan", "Fatih", "Hilal", "İnönü", "Meclis", "Merve", "Mevlana", "Osmangazi", "Paşaköy", "Safa", "Samandıra", "Sarıgazi", "Veysel Karani", "Yenidoğan", "Yunusemre"],
-    "Sarıyer": ["Ayazağa", "Bahçeköy Kemer", "Bahçeköy Merkez", "Bahçeköy Yeni", "Baltalimanı", "Büyükdere", "Cumhuriyet", "Çayırbaşı", "Darüşşafaka", "Demirciköy", "Emirgan", "Fatih Sultan Mehmet", "Ferahevler", "Garipçe", "Gümüşdere", "Huzur", "İstinye", "Kazım Karabekir Paşa", "Kısırkaya", "Kireçburnu", "Kocataş", "Kumköy", "Maden", "Maslak", "Merkez", "Pınar", "Poligon", "PTT Evleri", "Reşitpaşa", "Rumelifeneri", "Rumelihisarı", "Rumelikavağı", "Tarabya", "Uskumruköy", "Yeni", "Yeniköy", "Zekeriyaköy"],
+    "Sarıyer": ["Ayazağa", "Baltalimanı", "Büyükdere", "Cumhuriyet", "Çayırbaşı", "Darüşşafaka", "Demirciköy", "Emirgan", "Ferahevler", "Garipçe", "Gümüşdere", "Huzur", "İstinye", "Kısırkaya", "Kireçburnu", "Kocataş", "Kumköy", "Maden", "Maslak", "Merkez", "Pınar", "Poligon", "PTT Evleri", "Reşitpaşa", "Rumelifeneri", "Rumelihisarı", "Rumelikavağı", "Tarabya", "Uskumruköy", "Yeni", "Yeniköy", "Zekeriyaköy"],
     "Silivri": ["Akören", "Alibey", "Alipaşa", "Balaban", "Bekirli", "Beyciler", "Büyükçavuşlu", "Büyükkılıçlı", "Büyüksinekli", "Cumhuriyet", "Çayırdere", "Çeltik", "Danamandıra", "Fatih", "Fener", "Fevzipaşa", "Gazitepe", "Gümüşyaka", "Hürriyet", "İsmetpaşa", "Kadıköy", "Kavaklı", "Kurfallı", "Küçükkılıçlı", "Küçüksinekli", "Mimar Sinan", "Ortaköy", "Piri Mehmet Paşa", "Sancaktepe", "Sayalar", "Selimpaşa", "Semizkumlar", "Seymen", "Yeni", "Yolçatı"],
     "Sultanbeyli": ["Abdurrahmangazi", "Adil", "Ahmet Yesevi", "Akşemsettin", "Battalgazi", "Fatih", "Hamidiye", "Hasanpaşa", "Mecidiye", "Mehmet Akif", "Mimar Sinan", "Necip Fazıl", "Orhangazi", "Turgut Reis", "Yavuz Selim"],
     "Sultangazi": ["50. Yıl", "75. Yıl", "Cebeci", "Cumhuriyet", "Esentepe", "Eski Habipler", "Gazi", "Habipler", "İsmetpaşa", "Malkoçoğlu", "Sultançiftliği", "Uğur Mumcu", "Yayla", "Zübeyde Hanım"],
-    "Şile": ["Ağaçdere", "Ağva Merkez", "Ahmetli", "Akçakese", "Alacalı", "Avcıkoru", "Balibey", "Bıçkıdere", "Bozgoca", "Bucaklı", "Çataklı", "Çavuş", "Çayırbaşı", "Çelebi", "Çengelli", "Darlık", "Değirmençayırı", "Doğancılı", "Erenler", "Esenceli", "Geredeli", "Göçe", "Gökmaslı", "Göksu", "Hacıkasım", "Hacıllı", "Hasanlı", "İmrendere", "İmrenli", "İsaköy", "Kabakoz", "Kadıköy", "Kalem", "Karabeyli", "Karakiraz", "Karamandere", "Kervansaray", "Kızılca", "Koru", "Kumbaba", "Kurfallı", "Kurna", "Meşrutiyet", "Oruçoğlu", "Osmanköy", "Ovacık", "Sahilköy", "Satmazlı", "Sofular", "Soğullu", "Sortullu", "Şuayipli", "Teke", "Ulupelit", "Üvezli", "Yazımanayır", "Yeniköy", "Yeşilvadi"],
+    "Şile": ["Ağva Merkez", "Ahmetli", "Akçakese", "Alacalı", "Avcıkoru", "Balibey", "Bıçkıdere", "Bozgoca", "Bucaklı", "Çataklı", "Çavuş", "Çayırbaşı", "Çelebi", "Çengelli", "Darlık", "Değirmençayırı", "Doğancılı", "Erenler", "Esenceli", "Geredeli", "Göçe", "Gökmaslı", "Göksu", "Hacıkasım", "Hacıllı", "Hasanlı", "İmrendere", "İmrenli", "İsaköy", "Kabakoz", "Kadıköy", "Kalem", "Karabeyli", "Karakiraz", "Karamandere", "Kervansaray", "Kızılca", "Koru", "Kumbaba", "Kurfallı", "Kurna", "Meşrutiyet", "Oruçoğlu", "Osmanköy", "Ovacık", "Sahilköy", "Satmazlı", "Sofular", "Soğullu", "Sortullu", "Şuayipli", "Teke", "Ulupelit", "Üvezli", "Yazımanayır", "Yeniköy", "Yeşilvadi"],
     "Şişli": ["19 Mayıs", "Bozkurt", "Cumhuriyet", "Duatepe", "Ergenekon", "Esentepe", "Eskişehir", "Feriköy", "Fulya", "Gülbahar", "Halaskargazi", "Halide Edip Adıvar", "Halil Rıfat Paşa", "Harbiye", "Huzur", "İnönü", "İzzet Paşa", "Kaptanpaşa", "Kuştepe", "Mahmut Şevket Paşa", "Mecidiyeköy", "Merkez", "Meşrutiyet", "Paşa", "Teşvikiye", "Yayla"],
     "Tuzla": ["Akfırat", "Anadolu", "Aydınlı", "Aydıntepe", "Cami", "Evliya Çelebi", "Fatih", "İçmeler", "İstasyon", "Mescit", "Mimar Sinan", "Orhanlı", "Orta", "Postane", "Şifa", "Tepeören", "Yayla"],
-    "Ümraniye": ["Adem Yavuz", "Altınşehir", "Armağanevler", "Aşağı Dudullu", "Atakent", "Atatürk", "Cemil Meriç", "Çakmak", "Çamlık", "Dumlupınar", "Elmalıkent", "Esenevler", "Esenkents", "Esenşehir", "Fatih Sultan Mehmet", "Hekimbaşı", "Huzur", "Ihlamurkuyu", "İnkılap", "İstiklal", "Kazım Karabekir", "Madenler", "Mehmet Akif", "Namık Kemal", "Necip Fazıl", "Parseller", "Saray", "Site", "Şerifali", "Tantavi", "Tatlısu", "Tepeüstü", "Topağacı", "Yamanevler", "Yenişehir", "Yukarı Dudullu"],
+    "Ümraniye": ["Adem Yavuz", "Altınşehir", "Armağanevler", "Aşağı Dudullu", "Atakent", "Atatürk", "Cemil Meriç", "Çakmak", "Çamlık", "Dumlupınar", "Elmalıkent", "Esenevler", "Esenşehir", "Fatih Sultan Mehmet", "Hekimbaşı", "Huzur", "Ihlamurkuyu", "İnkılap", "İstiklal", "Kazım Karabekir", "Madenler", "Mehmet Akif", "Namık Kemal", "Necip Fazıl", "Parseller", "Saray", "Site", "Şerifali", "Tantavi", "Tatlısu", "Tepeüstü", "Topağacı", "Yamanevler", "Yenişehir", "Yukarı Dudullu"],
     "Üsküdar": ["Acıbadem", "Ahmediye", "Altunizade", "Aziz Mahmut Hüdayi", "Bahçelievler", "Barbaros", "Beylerbeyi", "Bulgurlu", "Burhaniye", "Cumhuriyet", "Çengelköy", "Ferah", "Güzeltepe", "İcadiye", "Kandilli", "Kısıklı", "Kirazlıtepe", "Kuleli", "Kuzguncuk", "Küçük Çamlıca", "Küçüksu", "Küplüce", "Mehmet Akif Ersoy", "Mimar Sinan", "Murat Reis", "Salacak", "Selami Ali", "Selimiye", "Sultantepe", "Ünalan", "Valide-i Atik", "Yavuztürk", "Zeynep Kamil"],
     "Zeytinburnu": ["Beştelsiz", "Çırpıcı", "Gökalp", "Kazlıçeşme", "Maltepe", "Merkezefendi", "Nuripaşa", "Seyitnizam", "Sümer", "Telsiz", "Veliefendi", "Yenidoğan", "Yeşiltepe"]
 };
 
-let myChart = null;
-
 window.onload = () => {
-    const iSel = document.getElementById("ilce");
-    Object.keys(districts).sort((a,b)=>a.localeCompare(b,'tr')).forEach(i => iSel.add(new Option(i,i)));
-    iSel.value = "Fatih";
-    initMahalle();
+    const iSec = document.getElementById("ilce");
+    Object.keys(data).sort((a,b)=>a.localeCompare(b,'tr')).forEach(i => iSec.add(new Option(i,i)));
+    iSec.value = "Fatih";
+    updateMah();
 };
 
-function initMahalle() {
+function updateMah() {
     const il = document.getElementById("ilce").value;
-    const mSel = document.getElementById("mahalle");
-    mSel.innerHTML = "";
-    districts[il].sort((a,b)=>a.localeCompare(b,'tr')).forEach(m => mSel.add(new Option(m,m)));
-    getHava();
+    const mSec = document.getElementById("mah");
+    mSec.innerHTML = "";
+    data[il].sort((a,b)=>a.localeCompare(b,'tr')).forEach(m => mSec.add(new Option(m,m)));
+    getData();
 }
 
-async function getHava() {
+async function getData() {
     const il = document.getElementById("ilce").value;
-    const mah = document.getElementById("mahalle").value;
+    const mah = document.getElementById("mah").value;
     document.getElementById("loc").innerText = `${mah}, ${il}`;
 
     try {
-        const r = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=41.00&longitude=28.97&current=temperature_2m,apparent_temperature,weather_code&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max&hourly=temperature_2m&timezone=auto`);
-        const d = await r.json();
+        const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=41.00&longitude=28.97&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,cloud_cover&daily=temperature_2m_max,temperature_2m_min&timezone=auto`);
+        const d = await res.json();
 
-        document.getElementById("derece").innerText = Math.round(d.current.temperature_2m) + "°";
-        document.getElementById("his").innerText = Math.round(d.current.apparent_temperature) + "°";
-        
-        let kp = d.daily.precipitation_probability_max[0];
-        document.getElementById("kar").innerText = d.current.temperature_2m < 4 ? "%"+kp : "%0";
+        // 1. Bölme
+        document.getElementById("mainTemp").innerText = Math.round(d.current.temperature_2m) + "°";
+        const codes = {0:"Açık", 1:"Açık", 2:"Az Bulutlu", 3:"Bulutlu", 45:"Sisli", 61:"Yağmurlu", 71:"Karlı", 95:"Fırtına"};
+        document.getElementById("mainDesc").innerText = codes[d.current.weather_code] || "Açık";
 
-        const codes = {0:"Güneşli", 1:"Açık", 2:"Az Bulutlu", 3:"Bulutlu", 61:"Yağmur", 71:"Kar"};
-        document.getElementById("durum").innerText = codes[d.current.weather_code] || "Açık";
+        // 2. Bölme
+        document.getElementById("f1").innerText = Math.round(d.current.apparent_temperature) + "°";
+        document.getElementById("f2").innerText = "%" + d.current.relative_humidity_2m;
+        document.getElementById("f3").innerText = Math.round(d.current.wind_speed_10m) + " km/h";
+        document.getElementById("f4").innerText = "%" + d.current.cloud_cover;
 
-        // Tahmin Listesi
-        const l = document.getElementById("liste");
-        l.innerHTML = "";
+        // 3. Bölme
+        const fList = document.getElementById("forecast");
+        fList.innerHTML = "";
         d.daily.time.forEach((t, i) => {
             const day = new Date(t).toLocaleDateString('tr', {weekday:'long'});
-            l.innerHTML += `<div class="row"><span>${day}</span><b>${Math.round(d.daily.temperature_2m_max[i])}° / ${Math.round(d.daily.temperature_2m_min[i])}°</b></div>`;
+            fList.innerHTML += `
+                <div class="row">
+                    <span>${day}</span>
+                    <b>${Math.round(d.daily.temperature_2m_max[i])}° / ${Math.round(d.daily.temperature_2m_min[i])}°</b>
+                </div>`;
         });
-
-        // Diyagram
-        draw(d.hourly.time.slice(0,48), d.hourly.temperature_2m.slice(0,48));
-    } catch(e) { console.log(e); }
-}
-
-function draw(labels, temps) {
-    const ctx = document.getElementById('grafik').getContext('2d');
-    if(myChart) myChart.destroy();
-    myChart = new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: labels.map(x => x.split('T')[1]),
-            datasets: [{ data: temps, borderColor: '#00d2ff', borderWidth: 2, pointRadius: 0, fill: true, backgroundColor: 'rgba(0,210,255,0.1)' }]
-        },
-        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { ticks: { color: '#ccc', maxTicksLimit: 5 } }, y: { ticks: { color: '#ccc' } } } }
-    });
+    } catch(e) { console.error(e); }
 }
 </script>
 </body>
