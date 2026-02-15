@@ -168,4 +168,22 @@ async function fetchData() {
         document.getElementById("alert-box").style.display = p > 40 ? "block" : "none";
         document.getElementById("hali").innerText = (t > 12 && p < 20) ? "10/10" : "3/10";
         document.getElementById("mangal").innerText = (w < 20 && p < 10) ? "9/10" : "1/10";
-        document.getElementById("vapur").innerText = w > 45 ? "İptal" : "No
+        document.getElementById("vapur").innerText = w > 45 ? "İptal" : "Normal";
+        document.getElementById("balik").innerText = t < 15 ? "Çok İyi" : "Orta";
+        
+        let giyim = "";
+        if(t > 20) giyim = "👕 Tişört yeterli.";
+        else if(t > 10) giyim = "🧥 Ceket veya hırka al.";
+        else giyim = "🧣 Kalın mont ve atkı al.";
+        document.getElementById("giyim-val").innerText = giyim;
+
+        const fDiv = document.getElementById("forecast");
+        fDiv.innerHTML = "";
+        d.daily.time.forEach((time, i) => {
+            fDiv.innerHTML += `<div class="info-row"><span>${new Date(time).toLocaleDateString('tr', {weekday:'short'})}</span><b>${Math.round(d.daily.temperature_2m_max[i])}° / ${Math.round(d.daily.temperature_2m_min[i])}°</b></div>`;
+        });
+    } catch(e) { document.getElementById("desc-val").innerText = "Bağlantı Yok!"; }
+}
+</script>
+</body>
+</html>
