@@ -3,43 +3,49 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>İstanbul Hava Pro v4.9</title>
-    <link rel="manifest" href="data:application/manifest+json,{%22name%22:%22İstanbul%20Hava%20Pro%22,%22short_name%22:%22HavaPro%22,%22start_url%22:%22.%22,%22display%22:%22standalone%22,%22background_color%22:%22%23020617%22,%22theme_color%22:%22%2338bdf8%22}">
+    <title>İstanbul Hava Pro v5.2</title>
     <style>
         :root { --bg: #020617; --card: #1e293b; --accent: #38bdf8; --warn: #f43f5e; --safe: #10b981; }
-        body { margin: 0; background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif; }
+        body { margin: 0; background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif; overflow-x: hidden; }
+        
+        /* Menü Düzeltmesi */
         .header { display: flex; align-items: center; padding: 15px; background: #0f172a; border-bottom: 2px solid var(--accent); position: sticky; top: 0; z-index: 100; }
-        .sidebar { position: fixed; top: 0; left: -300px; width: 280px; height: 100%; background: #0f172a; z-index: 1000; transition: 0.3s; padding: 25px; border-right: 1px solid var(--accent); }
+        .sidebar { position: fixed; top: 0; left: -100%; width: 280px; height: 100%; background: #0f172a; z-index: 1000; transition: 0.3s ease; padding: 25px; border-right: 1px solid var(--accent); box-shadow: 10px 0 20px rgba(0,0,0,0.5); }
         .sidebar.open { left: 0; }
-        .selectors { padding: 15px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; background: #0f172a; }
-        select { padding: 12px; border-radius: 12px; border: 1px solid #334155; background: var(--card); color: white; font-weight: bold; width: 100%; font-size: 14px; outline: none; }
-        .container { padding: 15px; max-width: 600px; margin: auto; }
-        .bolme { background: var(--card); border-radius: 20px; padding: 18px; margin-bottom: 15px; border: 1px solid rgba(255,255,255,0.05); }
+        .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: none; z-index: 999; }
+        .overlay.active { display: block; }
+
+        /* Arayüz */
+        .selectors { padding: 12px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; background: #0f172a; }
+        select { padding: 12px; border-radius: 10px; border: 1px solid #334155; background: var(--card); color: white; width: 100%; font-size: 14px; outline: none; }
+        .container { padding: 15px; max-width: 500px; margin: auto; }
+        .bolme { background: var(--card); border-radius: 20px; padding: 18px; margin-bottom: 15px; border: 1px solid rgba(255,255,255,0.05); text-align: center; }
         .badge { background: var(--accent); color: #000; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: bold; margin-bottom: 10px; display: inline-block; }
-        .grid-custom { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-        .kutu { background: #0f172a; padding: 10px; border-radius: 12px; text-align: center; font-size: 11px; }
+        .grid-custom { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 10px; }
+        .kutu { background: #0f172a; padding: 10px; border-radius: 12px; font-size: 11px; }
         .kutu b { display: block; font-size: 14px; color: var(--accent); margin-top: 4px; }
-        .btn-link { display: block; width: 100%; padding: 15px; background: rgba(255,255,255,0.05); color: white; text-decoration: none; border-radius: 12px; margin-bottom: 10px; font-size: 14px; border: 1px solid rgba(255,255,255,0.1); text-align: center; }
-        .btn-link:active { background: var(--accent); color: black; }
-        #temp-val { font-size: 75px; font-weight: 900; margin: 10px 0; display: block; }
+        .btn-link { display: block; width: 100%; padding: 14px; background: rgba(255,255,255,0.05); color: white; text-decoration: none; border-radius: 10px; margin-bottom: 10px; text-align: center; border: 1px solid var(--accent); }
+        #temp-val { font-size: 70px; font-weight: 900; margin: 5px 0; display: block; }
     </style>
 </head>
 <body>
 
+    <div id="overlay" class="overlay" onclick="toggleMenu()"></div>
+
     <div class="header">
-        <button onclick="toggleMenu()" style="background:none; border:none; color:white; font-size:24px; cursor:pointer;">☰</button>
+        <button onclick="toggleMenu()" style="background:none; border:none; color:white; font-size:28px; cursor:pointer;">☰</button>
         <b style="margin-left: 15px;">İSTANBUL HAVA PRO</b>
     </div>
 
     <div id="sidebar" class="sidebar">
-        <h3 style="color: var(--accent); margin-top:0;">İstanbul Menü</h3>
+        <h3 style="color: var(--accent); margin-top: 0;">Resmi Kanallar</h3>
         <a href="https://tumas.iski.gov.tr/baraj-doluluk" target="_blank" class="btn-link">💧 İSKİ Baraj Doluluk</a>
         <a href="https://www.istanbuleczaciodasi.org.tr/nobetci-eczane" target="_blank" class="btn-link">🏥 Nöbetçi Eczaneler</a>
         <a href="https://uym.ibb.gov.tr/" target="_blank" class="btn-link">🚗 Canlı Yol Durumu</a>
         <hr style="opacity:0.1; margin: 20px 0;">
-        <p style="font-size: 12px; opacity: 0.6;">İletişim:</p>
-        <p style="font-size: 13px; font-weight: bold;">istanbulhava041@gmail.com</p>
-        <button onclick="toggleMenu()" style="width:100%; padding:15px; background:var(--warn); border:none; color:white; border-radius:12px; margin-top:30px; font-weight:bold; cursor:pointer;">KAPAT</button>
+        <p style="font-size: 12px; opacity:0.7;">İletişim:</p>
+        <p style="font-size: 13px;"><b>istanbulhava041@gmail.com</b></p>
+        <button onclick="toggleMenu()" style="width:100%; padding:12px; background:var(--warn); border:none; color:white; border-radius:10px; margin-top:30px; font-weight:bold;">KAPAT</button>
     </div>
 
     <div class="selectors">
@@ -48,33 +54,33 @@
     </div>
 
     <div class="container">
-        <div class="bolme" style="text-align:center;">
-            <div id="loc-display" style="opacity: 0.6;">Yükleniyor...</div>
+        <div class="bolme">
+            <div id="loc-display" style="opacity: 0.6; font-size: 14px;">Konum Seçiliyor...</div>
             <span id="temp-val">--°</span>
-            <div id="desc-val" style="font-size: 20px; color: var(--accent); font-weight: bold;">--</div>
-            <div id="giyim-val" style="margin-top:10px; font-size:12px; opacity:0.8; background:rgba(255,255,255,0.05); padding:8px; border-radius:8px;">...</div>
+            <div id="desc-val" style="font-size: 20px; color: var(--accent); font-weight: bold; margin-bottom: 10px;">Bağlanıyor...</div>
+            <div id="giyim-val" style="background:rgba(56,189,248,0.1); padding:10px; border-radius:10px; font-size:13px; color:var(--accent);">Analiz yapılıyor...</div>
         </div>
 
         <div class="bolme">
             <span class="badge">Aktivite Analizi</span>
             <div class="grid-custom">
-                <div class="kutu">⚽ Maç<b id="hali">-</b></div>
-                <div class="kutu">🔥 Piknik<b id="mangal">-</b></div>
-                <div class="kutu)🚢 Vapur<b id="vapur">-</b></div>
+                <div class="kutu">⚽ Halısaha<b id="hali">-</b></div>
+                <div class="kutu">🔥 Mangal<b id="mangal">-</b></div>
                 <div class="kutu">🎣 Balık<b id="balik">-</b></div>
-                <div class="kutu">💧 Baraj<b>%74</b></div>
+                <div class="kutu">🚢 Vapur<b id="vapur">-</b></div>
+                <div class="kutu">💧 Baraj<b>%74.8</b></div>
                 <div class="kutu">🍃 Hava<b>İyi</b></div>
             </div>
         </div>
 
         <div class="bolme">
-            <span class="badge">Haftalık Durum</span>
+            <span class="badge">5 Günlük Tahmin</span>
             <div id="forecast"></div>
         </div>
     </div>
 
 <script>
-// İSTANBUL 39 İLÇE VE TÜM MAHALLELER (963 MAHALLE)
+// İSTANBUL TAM VERİ SETİ (963 MAHALLE)
 const districts = {
     "Adalar": ["Burgazada", "Heybeliada", "Kınalıada", "Maden", "Nizam"],
     "Arnavutköy": ["Adnan Menderes", "Anadolu", "Arnavutköy Merkez", "Atatürk", "Baklalı", "Balaban", "Boğazköy", "Bolluca", "Boyalık", "Çilingir", "Deliklikaya", "Dursunköy", "Durusu", "Fatih", "Hacımaşlı", "Hadımköy", "Haraççı", "Hastane", "Hicret", "İmrahor", "İslambey", "Karaburun", "Karlıbayır", "Mavigöl", "Mehmet Akif Ersoy", "Mustafa Kemal Paşa", "Nenehatun", "Ömerli", "Sazlıbosna", "Taşoluk", "Tayakadın", "Terkos", "Yassıören", "Yavuz Selim", "Yeniköy", "Yeşilbayır", "Yunus Emre"],
@@ -93,7 +99,7 @@ const districts = {
     "Çatalca": ["Akalan", "Atatürk", "Aydınlar", "Bahşayiş", "Başak", "Belgrat", "Binkılıç", "Çakıl", "Çanakça", "Çiftlikköy", "Dağyenice", "Elbasan", "Fatih", "Ferhatpaşa", "Gökçeali", "Gümüşpınar", "Hallaçlı", "Hisarbeyli", "İhsaniye", "İnceğiz", "İzzettin", "Kabakça", "Kaleiçi", "Kalfa", "Karacaköy", "Karamandere", "Kestanelik", "Kızılcaali", "Muratbey", "Nakkaş", "Oklalı", "Ormanlı", "Ovayenice", "Örcünlü", "Örencik", "Subaşı", "Yalıköy", "Yaylacık", "Yazlık"],
     "Çekmeköy": ["Alemdağ", "Aydınlar", "Cumhuriyet", "Çamlık", "Çatalmeşe", "Ekşioğlu", "Güngören", "Hamidiye", "Hüseyinli", "Kirazlıdere", "Koçullu", "Mehmet Akif", "Merkez", "Mimar Sinan", "Nişantepe", "Ömerli", "Reşadiye", "Sırapınar", "Soğukpınar", "Sultançiftliği", "Taşdelen"],
     "Esenler": ["Birlik", "Çifte Havuzlar", "Davutpaşa", "Fatih", "Fevzi Çakmak", "Havaalanı", "Kazım Karabekir", "Kemer", "Menderes", "Mimar Sinan", "Namık Kemal", "Nene Hatun", "Oruçreis", "Tuna", "Turgut Reis", "Yavuz Selim"],
-    "Esenyurt": ["Akçaburgaz", "Akevler", "Akşemseddin", "Ardıçlı", "Aşık Veysel", "Atatürk", "Bağlarçeşme", "Balıkyolu", "Barbaros Hayrettin Paşa", "Battalgazi", "Cumhuriyet", "Çınar", "Esenyurt Merkez", "Fatih", "Güzelyurt", "Hürriyet", "İncirtepe", "İnönü", "İstiklal", "Kıraç", "Mehmet Akif Ersoy", "Mehterçeşme", "Mevlana", "Namık Kemal", "Necip Fazıl Kısakürek", "Orhan Gazi", "Osmangazi", "Piri Reis", "Saadetdere", "Selahaddin Eyyubi", "Sultaniye", "Süleymaniye", "Şehitler", "Talatpaşa", "Turgut Özal", "Üçevler", "Yenikent", "Yeşilkent", "Yunusemre", "Zafer"],
+    "Esenyurt": ["Akçaburgaz", "Akevler", "Akşemseddin", "Ardıçlı", "Aşık Veysel", "Atatürk", "Bağlarçeşme", "Balıkyolu", "Barbaros Hayrettin Paşa", "Battalgazi", "Cumhuriyet", "Çınar", "Esenyurt Merkez", "Fatih", "Güzelyurt", "Hürriyet", "İincirtepe", "İnönü", "İstiklal", "Kıraç", "Mehmet Akif Ersoy", "Mehterçeşme", "Mevlana", "Namık Kemal", "Necip Fazıl Kısakürek", "Orhan Gazi", "Osmangazi", "Piri Reis", "Saadetdere", "Selahaddin Eyyubi", "Sultaniye", "Süleymaniye", "Şehitler", "Talatpaşa", "Turgut Özal", "Üçevler", "Yenikent", "Yeşilkent", "Yunusemre", "Zafer"],
     "Eyüpsultan": ["Ağaçlı", "Akpınar", "Akşemseddin", "Alibeyköy", "Çırçır", "Defterdar", "Düğmeciler", "Emniyettepe", "Esentepe", "Eyüp Merkez", "Göktürk", "Güzeltepe", "Işıklar", "İhsaniye", "İslambey", "Karadolap", "Kemerburgaz", "Mimar Sinan", "Mithatpaşa", "Nişancı", "Odayeri", "Pirinççi", "Rami Cuma", "Rami Yeni", "Sakarya", "Silahtarağa", "Topçular", "Yeşilpınar"],
     "Fatih": ["Aksaray", "Akşemsettin", "Alemdar", "Ali Kuşçu", "Atikali", "Ayvansaray", "Balabanağa", "Balat", "Beyazıt", "Binbirdirek", "Cankurtaran", "Cerrahpaşa", "Cibali", "Demirtaş", "Derviş Ali", "Eminsinan", "Hacıkadın", "Haseki Sultan", "Hırka-i Şerif", "Hobyar", "Hoca Paşa", "İskenderpaşa", "Kalenderhane", "Karagümrük", "Katip Kasım", "Kemalpaşa", "Kocamustafapaşa", "Küçükayasofya", "Mercan", "Mesihpaşa", "Mevlanakapı", "Mimar Hayrettin", "Mimar Kemalettin", "Molla Fenari", "Molla Gürani", "Molla Hüsrev", "Muhsine Hatun", "Nişanca", "Rüstempaşa", "Saraç İshak", "Sarıdemir", "Seyyid Ömer", "Silivrikapı", "Sultan Ahmet", "Sururi", "Süleymaniye", "Sümbül Efendi", "Şehremini", "Şehsuvar Bey", "Tahtakale", "Taya Hatun", "Topkapı", "Yavuz Sinan", "Yavuz Sultan Selim", "Yedikule", "Zeyrek"],
     "Gaziosmanpaşa": ["Bağlarbaşı", "Barbaros Hayrettin Paşa", "Fevzi Çakmak", "Hürriyet", "Karadeniz", "Karayolları", "Karlıtepe", "Kazım Karabekir", "Merkez", "Mevlana", "Pazariçi", "Sarıgöl", "Şemsipaşa", "Yeni Mahalle", "Yenidoğan", "Yıldıztabya"],
@@ -112,12 +118,15 @@ const districts = {
     "Şile": ["Ağva Merkez", "Ahmetli", "Akçakese", "Alacalı", "Avcıkoru", "Balibey", "Bıçkıdere", "Bozgoca", "Bucaklı", "Çataklı", "Çavuş", "Çayırbaşı", "Çelebi", "Çengelli", "Darlık", "Değirmençayırı", "Doğancılı", "Erenler", "Esenceli", "Geredeli", "Göçe", "Gökmaslı", "Göksu", "Hacıkasım", "Hacıllı", "Hasanlı", "İmrendere", "İmrenli", "İsaköy", "Kabakoz", "Kadıköy", "Kalem", "Karabeyli", "Karakiraz", "Karamandere", "Kervansaray", "Kızılca", "Koru", "Kumbaba", "Kurfallı", "Kurna", "Meşrutiyet", "Oruçoğlu", "Osmanköy", "Ovacık", "Sahilköy", "Satmazlı", "Sofular", "Soğullu", "Sortullu", "Şuayipli", "Teke", "Ulupelit", "Üvezli", "Yazımanayır", "Yeniköy", "Yeşilvadi"],
     "Şişli": ["19 Mayıs", "Bozkurt", "Cumhuriyet", "Duatepe", "Ergenekon", "Esentepe", "Eskişehir", "Feriköy", "Fulya", "Gülbahar", "Halaskargazi", "Halide Edip Adıvar", "Halil Rıfat Paşa", "Harbiye", "Huzur", "İnönü", "İzzet Paşa", "Kaptanpaşa", "Kuştepe", "Mahmut Şevket Paşa", "Mecidiyeköy", "Merkez", "Meşrutiyet", "Paşa", "Teşvikiye", "Yayla"],
     "Tuzla": ["Akfırat", "Anadolu", "Aydınlı", "Aydıntepe", "Cami", "Evliya Çelebi", "Fatih", "İçmeler", "İstasyon", "Mescit", "Mimar Sinan", "Orhanlı", "Orta", "Postane", "Şifa", "Tepeören", "Yayla"],
-    "Ümraniye": ["Adem Yavuz", "Altınşehir", "Armağanevler", "Aşağı Dudullu", "Atakent", "Atatürk", "Cemil Meriç", "Çakmak", "Çamlık", "Dumlupınar", "Elmalıkent", "Esenevler", "Esenşehir", "Fatih Sultan Mehmet", "Hekimbaşı", "Huzur", "Ihlamurkuyu", "İnkılap", "İstiklal", "Kazım Karabekir", "Madenler", "Mehmet Akif", "Namık Kemal", "Necip Fazıl", "Parseller", "Saray", "Site", "Şerifali", "Tantavi", "Tatlısu", "Tepeüstü", "Topağacı", "Yamanevler", "Yenişehir", "Yukarı Dudullu"],
+    "Ümraniye": ["Adem Yavuz", "Altınşehir", "Armağanevler", "Aşağı Dudullu", "Atakent", "Atatürk", "Cemil Meriç", "Çakmak", "Çamlık", "Dumlupınar", "Elmalıkent", "Esenevler", "Esenşehir", "Fatih Sultan Mehmet", "Hekimbaşı", "Huzur", "Ihlamuyu", "İnkılap", "İstiklal", "Kazım Karabekir", "Madenler", "Mehmet Akif", "Namık Kemal", "Necip Fazıl", "Parseller", "Saray", "Site", "Şerifali", "Tantavi", "Tatlısu", "Tepeüstü", "Topağacı", "Yamanevler", "Yenişehir", "Yukarı Dudullu"],
     "Üsküdar": ["Acıbadem", "Ahmediye", "Altunizade", "Aziz Mahmut Hüdayi", "Bahçelievler", "Barbaros", "Beylerbeyi", "Bulgurlu", "Burhaniye", "Cumhuriyet", "Çengelköy", "Ferah", "Güzeltepe", "İcadiye", "Kandilli", "Kısıklı", "Kirazlıtepe", "Kuleli", "Kuzguncuk", "Küçük Çamlıca", "Küçüksu", "Küplüce", "Mehmet Akif Ersoy", "Mimar Sinan", "Murat Reis", "Salacak", "Selami Ali", "Selimiye", "Sultantepe", "Ünalan", "Valide-i Atik", "Yavuztürk", "Zeynep Kamil"],
     "Zeytinburnu": ["Beştelsiz", "Çırpıcı", "Gökalp", "Kazlıçeşme", "Maltepe", "Merkezefendi", "Nuripaşa", "Seyitnizam", "Sümer", "Telsiz", "Veliefendi", "Yenidoğan", "Yeşiltepe"]
 };
 
-function toggleMenu() { document.getElementById('sidebar').classList.toggle('open'); }
+function toggleMenu() {
+    document.getElementById('sidebar').classList.toggle('open');
+    document.getElementById('overlay').classList.toggle('active');
+}
 
 window.onload = () => {
     const iSel = document.getElementById("ilce");
@@ -148,23 +157,18 @@ async function fetchData() {
         const p = d.current.precipitation_probability;
 
         document.getElementById("temp-val").innerText = t + "°";
-        const codes = {0:"Güneşli", 1:"Açık", 2:"Az Bulutlu", 3:"Bulutlu", 45:"Sisli", 61:"Yağmurlu", 71:"Karlı"};
+        const codes = {0:"Güneşli", 1:"Açık", 2:"Az Bulutlu", 3:"Bulutlu", 61:"Yağmurlu", 71:"Karlı"};
         document.getElementById("desc-val").innerText = codes[d.current.weather_code] || "Açık";
 
-        document.getElementById("hali").innerText = (t > 12 && p < 20) ? "10/10" : "3/10";
-        document.getElementById("mangal").innerText = (w < 20 && p < 10) ? "9/10" : "1/10";
-        document.getElementById("vapur").innerText = w > 45 ? "İptal" : "Açık";
-        document.getElementById("balik").innerText = t < 15 ? "İyi" : "Zayıf";
-        
-        document.getElementById("giyim-val").innerText = t > 18 ? "👕 İnce giyin." : "🧥 Ceketini al.";
+        // Giyim Önerisi
+        let giysi = "";
+        if(t > 22) giysi = "👕 Hafif giyin, tişört yeterli.";
+        else if(t > 14) giysi = "🧥 Yanına ince bir ceket al.";
+        else if(t > 6) giysi = "🧥 Kalın bir mont giymelisin.";
+        else giysi = "🧣 Atkı, bere ve kalın mont şart!";
+        document.getElementById("giyim-val").innerText = giysi;
 
-        const fDiv = document.getElementById("forecast");
-        fDiv.innerHTML = "";
-        d.daily.time.slice(0, 5).forEach((time, i) => {
-            fDiv.innerHTML += `<div style="display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid rgba(255,255,255,0.05); font-size:14px;"><span>${new Date(time).toLocaleDateString('tr', {weekday:'short'})}</span><b>${Math.round(d.daily.temperature_2m_max[i])}° / ${Math.round(d.daily.temperature_2m_min[i])}°</b></div>`;
-        });
-    } catch(e) { document.getElementById("desc-val").innerText = "Hata!"; }
-}
-</script>
-</body>
-</html>
+        // Aktivite Puanlama
+        document.getElementById("hali").innerText = (p < 20 && t > 8) ? "10/10" : "3/10";
+        document.getElementById("mangal").innerText = (w < 20 && p < 10 && t > 15) ? "9/10" : "1/10";
+        doc
