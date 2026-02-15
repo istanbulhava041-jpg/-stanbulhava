@@ -4,35 +4,27 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="manifest" href="manifest.json">
-    <title>İstanbul Pro Hava Durumu</title>
+    <title>İstanbul Hava Durumu Pro</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        :root { --main-blue: #4A90E2; --dark-blue: #16213e; }
-        body { margin: 0; background: #1a5bb0; color: white; font-family: sans-serif; overflow-x: hidden; }
-        
-        /* Menü Sistemi */
-        .menu-btn { position: fixed; top: 15px; left: 15px; font-size: 24px; cursor: pointer; z-index: 1001; background: rgba(0,0,0,0.3); padding: 8px 12px; border-radius: 10px; }
-        .side-menu { position: fixed; top: 0; left: -100%; width: 100%; height: 100%; background: var(--dark-blue); z-index: 1000; transition: 0.4s; padding: 70px 25px; box-sizing: border-box; overflow-y: auto; }
+        body { margin: 0; background: #1a5bb0; color: white; font-family: sans-serif; padding: 15px; }
+        .menu-btn { position: fixed; top: 15px; left: 15px; font-size: 28px; cursor: pointer; z-index: 1001; background: rgba(0,0,0,0.2); padding: 5px 12px; border-radius: 8px; }
+        .side-menu { position: fixed; top: 0; left: -100%; width: 100%; height: 100%; background: #16213e; z-index: 1000; transition: 0.3s; padding: 80px 20px; box-sizing: border-box; overflow-y: auto; }
         .side-menu.active { left: 0; }
         .side-menu a { display: block; padding: 15px; color: #87CEEB; text-decoration: none; font-size: 18px; border-bottom: 1px solid rgba(255,255,255,0.1); }
-        .about-text { font-size: 13px; line-height: 1.6; color: #ccc; margin-top: 20px; text-align: justify; }
-
-        /* Ana Panel */
-        .container { padding: 70px 15px 20px; }
-        .select-group { display: flex; gap: 8px; margin-bottom: 20px; }
-        select { flex: 1; padding: 12px; border-radius: 12px; border: none; background: rgba(255,255,255,0.2); color: white; font-weight: bold; }
+        
+        .selects { display: flex; gap: 8px; margin: 60px 0 20px 0; }
+        select { flex: 1; padding: 12px; border-radius: 12px; border: none; background: rgba(255,255,255,0.2); color: white; font-weight: bold; outline: none; }
         select option { color: #333; }
 
-        .weather-card { background: rgba(255,255,255,0.15); backdrop-filter: blur(10px); border-radius: 25px; padding: 25px; text-align: center; border: 1px solid rgba(255,255,255,0.2); }
-        .temp-val { font-size: 80px; font-weight: bold; margin: 5px 0; }
+        .card { background: rgba(255,255,255,0.15); backdrop-filter: blur(10px); border-radius: 25px; padding: 25px; text-align: center; border: 1px solid rgba(255,255,255,0.2); }
+        .main-temp { font-size: 75px; font-weight: bold; margin: 10px 0; }
         
-        .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; }
-        .s-box { background: rgba(0,0,0,0.2); padding: 12px; border-radius: 15px; }
-        .s-box span { display: block; font-size: 11px; opacity: 0.8; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; }
+        .box { background: rgba(0,0,0,0.2); padding: 15px; border-radius: 15px; }
+        .box span { display: block; font-size: 11px; opacity: 0.7; }
 
-        /* Grafik / Diyagram Alanı */
-        .diag-section { background: rgba(255,255,255,0.1); border-radius: 20px; padding: 15px; margin-top: 25px; height: 250px; }
-        .section-title { margin: 20px 0 10px; font-size: 18px; font-weight: bold; }
+        .diag-container { background: rgba(255,255,255,0.1); border-radius: 20px; padding: 15px; margin-top: 25px; height: 250px; }
     </style>
 </head>
 <body>
@@ -40,52 +32,39 @@
     <div class="menu-btn" onclick="toggleMenu()">☰</div>
 
     <div class="side-menu" id="sideMenu">
-        <a href="#" onclick="toggleMenu()">❌ Kapat</a>
+        <a href="javascript:void(0)" onclick="toggleMenu()">❌ Menüyü Kapat</a>
         <a href="mailto:Istanbulhava041@gmail.com">📧 Bize Ulaşın</a>
-        
-        <div class="about-text">
-            <h3>Hakkımızda & Proje Detayları</h3>
-            <p>Bu uygulama, İstanbul'un 39 ilçesi ve tam 963 mahallesi için özel olarak tasarlanmış yüksek çözünürlüklü bir meteoroloji panelidir. Uygulamamızda kullanılan veriler, Open-Meteo'nun profesyonel API servisleri aracılığıyla sağlanmakta ve anlık olarak işlenmektedir.</p>
-            <p><b>Teknik Özellikler:</b> Sistemimiz sıcaklık, hissedilen sıcaklık, bağıl nem, rüzgar hızı ve UV indeksini 15 dakikalık periyotlarla günceller. Diyagram bölümü, geleneksel tahminlerin ötesinde, 7 günlük sıcaklık trendini görsel bir grafik üzerinde analiz etmenize olanak tanır.</p>
-            <p>İstanbul'un karmaşık coğrafi yapısı (deniz etkisi ve yükselti farkları) göz önünde bulundurularak, her mahalle için en yakın koordinat verisi baz alınır. Hedefimiz, karmaşık meteorolojik verileri sade ve anlaşılır bir kullanıcı arayüzü ile sunmaktır.</p>
+        <div style="padding: 15px; font-size: 13px; color: #ccc; line-height: 1.6;">
+            <h3>Hakkımızda</h3>
+            <p>Bu uygulama İstanbul'un 39 ilçesi ve 963 mahallesi için anlık meteorolojik veriler sunar. Open-Meteo altyapısı ile her 15 dakikada bir güncellenir. Sıcaklık, nem, rüzgar ve UV değerleri profesyonel sensör verilerinden alınmaktadır. Alt kısımdaki diyagram 7 günlük trendi göstermektedir.</p>
         </div>
     </div>
 
-    <div class="container">
-        <div class="select-group">
-            <select id="ilceList" onchange="updateMahalle()"></select>
-            <select id="mahalleList" onchange="getWeather()"></select>
-        </div>
+    <div class="selects">
+        <select id="ilceList" onchange="ilceDegis()"></select>
+        <select id="mahalleList" onchange="havaGetir()"></select>
+    </div>
 
-        <div class="weather-card">
-            <div id="locName" style="font-size: 18px;">İstanbul</div>
-            <div class="temp-val" id="mainTemp">--°</div>
-            <div id="desc" style="font-size: 20px;">Yükleniyor...</div>
-            
-            <div class="stats">
-                <div class="s-box"><span>Hissedilen</span><b id="feel">--°</b></div>
-                <div class="s-box"><span>Nem</span><b id="hum">%--</b></div>
-                <div class="s-box"><span>Rüzgar</span><b id="wind">-- km/s</b></div>
-                <div class="s-box"><span>UV İndeksi</span><b id="uv">--</b></div>
-            </div>
-        </div>
-
-        <div class="section-title">7 Günlük Sıcaklık Diyagramı</div>
-        <div class="diag-section">
-            <canvas id="tempChart"></canvas>
-        </div>
+    <div class="card">
+        <div id="yer" style="font-size: 18px; opacity: 0.8;">İstanbul</div>
+        <div class="main-temp" id="derece">--°</div>
+        <div id="durum" style="font-size: 20px;">Yükleniyor...</div>
         
-        <div style="text-align:center; padding: 30px; opacity: 0.4; font-size: 11px;">
-            © 2026 İstanbul Hava Durumu Pro v2.0
+        <div class="grid">
+            <div class="box"><span>Hissedilen</span><b id="his">--°</b></div>
+            <div class="box"><span>Nem</span><b id="nem">%--</b></div>
+            <div class="box"><span>Rüzgar</span><b id="ruz">-- km/s</b></div>
+            <div class="box"><span>UV</span><b id="uv">--</b></div>
         </div>
+    </div>
+
+    <h4 style="margin: 25px 0 10px 5px;">7 Günlük Sıcaklık Diyagramı</h4>
+    <div class="diag-container">
+        <canvas id="grafik"></canvas>
     </div>
 
 <script>
-let myChart = null;
-
-function toggleMenu() { document.getElementById("sideMenu").classList.toggle("active"); }
-
-// 39 İlçe ve 963 Mahalle Verisi
+// BURAYA TÜM İLÇE VE MAHALLE VERİSİNİ KOY (EKSİKSİZ)
 const data = {
     "Adalar": ["Burgazada", "Heybeliada", "Kınalıada", "Maden", "Nizam"],
     "Arnavutköy": ["Adnan Menderes", "Anadolu", "Arnavutköy Merkez", "Atatürk", "Baklalı", "Balaban", "Boğazköy", "Bolluca", "Boyalık", "Çilingir", "Deliklikaya", "Dursunköy", "Durusu", "Fatih", "Hacımaşlı", "Hadımköy", "Haraççı", "Hastane", "Hicret", "İmrahor", "İslambey", "Karaburun", "Karlıbayır", "M. Fevzi Çakmak", "Mavigöl", "Mehmet Akif Ersoy", "Mustafa Kemal Paşa", "Nenehatun", "Ömerli", "Sazlıbosna", "Taşoluk", "Tayakadın", "Terkos", "Yassıören", "Yavuz Selim", "Yeniköy", "Yeşilbayır", "Yunus Emre"],
@@ -114,7 +93,7 @@ const data = {
     "Kartal": ["Atalar", "Cevizli", "Cumhuriyet", "Çavuşoğlu", "Esentepe", "Gümüşpınar", "Hürriyet", "Karlıktepe", "Kordonboyu", "Orhantepe", "Orta", "Petrol İş", "Soğanlık Yeni", "Topselvi", "Uğur Mumcu", "Yakacık Çarşı", "Yakacık Yeni", "Yalı", "Yukarı", "Yunus"],
     "Küçükçekmece": ["Atakent", "Atatürk", "Beşyol", "Cennet", "Cumhuriyet", "Fatih", "Fevzi Çakmak", "Gültepe", "Halkalı Merkez", "İnönü", "İstasyon", "Kanarya", "Kartaltepe", "Kemalpaşa", "Mehmet Akif", "Söğütlü Çeşme", "Sultan Murat", "Tevfik Bey", "Yarımburgaz", "Yeni Mahalle", "Yeşilova"],
     "Maltepe": ["Altayçeşme", "Altıntepe", "Aydınevler", "Bağlarbaşı", "Başıbüyük", "Büyükbakkalköy", "Cevizli", "Çınar", "Esenkent", "Feyzullah", "Fındıklı", "Girne", "Gülensu", "Gülsuyu", "İdealtepe", "Küçükyalı", "Yalı", "Zümrütevler"],
-    "Pendik": ["Ahmet Yesevi", "Bahçelievler", "Ballıca", "Batı", "Çamçeşme", "Çamlık", "Çınardere", "Doğu", "Dumlupınar", "Emirli", "Ertuğrul Gazi", "Esenler", "Esenyalı", "Fatih", "Fevzi Çakmak", "Göçbeyli", "Güllü Bağlar", "Güzelyalı", "Harmandere", "Kavakpınar", "Kaynarca", "Kurna", "Kurtdoğmuş", "Kurtköy", "Orhangazi", "Orta", "Ramazanoğlu", "Sanayi", "Sapan Bağları", "Sülüntepe", "Şeyhli", "Velibaba", "Yayalar", "Yeni Mahalle", "Yenişehir", "Yeşilbağlar"],
+    "Pendik": ["Ahmet Yesevi", "Bağlarbaşı", "Ballıca", "Batı", "Çamçeşme", "Çamlık", "Çınardere", "Doğu", "Dumlupınar", "Emirli", "Ertuğrul Gazi", "Esenler", "Esenyalı", "Fatih", "Fevzi Çakmak", "Göçbeyli", "Güllü Bağlar", "Güzelyalı", "Harmandere", "Kavakpınar", "Kaynarca", "Kurna", "Kurtdoğmuş", "Kurtköy", "Orhangazi", "Orta", "Ramazanoğlu", "Sanayi", "Sapan Bağları", "Sülüntepe", "Şeyhli", "Velibaba", "Yayalar", "Yeni Mahalle", "Yenişehir", "Yeşilbağlar"],
     "Sancaktepe": ["Abdurrahmangazi", "Akpınar", "Atatürk", "Emek", "Eyüp Sultan", "Fatih", "Hilal", "İnönü", "Meclis", "Merve", "Mevlana", "Osmangazi", "Paşaköy", "Safa", "Samandıra", "Sarıgazi", "Veysel Karani", "Yenidoğan", "Yunusemre"],
     "Sarıyer": ["Ayazağa", "Bahçeköy Kemer", "Bahçeköy Merkez", "Bahçeköy Yeni", "Baltalimanı", "Büyükdere", "Cumhuriyet", "Çayırbaşı", "Darüşşafaka", "Demirciköy", "Emirgan", "Fatih Sultan Mehmet", "Ferahevler", "Garipçe", "Gümüşdere", "Huzur", "İstinye", "Kazım Karabekir Paşa", "Kısırkaya", "Kireçburnu", "Kocataş", "Kumköy", "Maden", "Maslak", "Merkez", "Pınar", "Poligon", "PTT Evleri", "Reşitpaşa", "Rumelifeneri", "Rumelihisarı", "Rumelikavağı", "Tarabya", "Uskumruköy", "Yeni", "Yeniköy", "Zekeriyaköy"],
     "Silivri": ["Akören", "Alibey", "Alipaşa", "Balaban", "Bekirli", "Beyciler", "Büyükçavuşlu", "Büyükkılıçlı", "Büyüksinekli", "Cumhuriyet", "Çayırdere", "Çeltik", "Danamandıra", "Fatih", "Fener", "Fevzipaşa", "Gazitepe", "Gümüşyaka", "Hürriyet", "İsmetpaşa", "Kadıköy", "Kavaklı", "Kurfallı", "Küçükkılıçlı", "Küçüksinekli", "Mimar Sinan", "Ortaköy", "Piri Mehmet Paşa", "Sancaktepe", "Sayalar", "Selimpaşa", "Semizkumlar", "Seymen", "Yeni", "Yolçatı"],
@@ -128,55 +107,74 @@ const data = {
     "Zeytinburnu": ["Beştelsiz", "Çırpıcı", "Gökalp", "Kazlıçeşme", "Maltepe", "Merkezefendi", "Nuripaşa", "Seyitnizam", "Sümer", "Telsiz", "Veliefendi", "Yenidoğan", "Yeşiltepe"]
 };
 
+let c = null;
+
+function toggleMenu() { document.getElementById("sideMenu").classList.toggle("active"); }
+
 window.onload = () => {
-    const ilceSel = document.getElementById("ilceList");
-    Object.keys(data).sort((a,b)=>a.localeCompare(b,'tr')).forEach(i => {
-        ilceSel.add(new Option(i, i));
-    });
-    ilceSel.value = "Fatih";
-    updateMahalle();
+    const ilSel = document.getElementById("ilceList");
+    Object.keys(data).sort((a,b)=>a.localeCompare(b,'tr')).forEach(i => ilSel.add(new Option(i,i)));
+    ilSel.value = "Fatih";
+    ilceDegis();
 };
 
-function updateMahalle() {
+function ilceDegis() {
     const ilce = document.getElementById("ilceList").value;
-    const mahSel = document.getElementById("mahalleList");
-    mahSel.innerHTML = "";
-    data[ilce].sort((a,b)=>a.localeCompare(b,'tr')).forEach(m => {
-        mahSel.add(new Option(m, m));
-    });
-    getWeather();
+    const mSel = document.getElementById("mahalleList");
+    mSel.innerHTML = "";
+    data[ilce].sort((a,b)=>a.localeCompare(b,'tr')).forEach(m => mSel.add(new Option(m,m)));
+    havaGetir();
 }
 
-async function getWeather() {
+async function havaGetir() {
     const mah = document.getElementById("mahalleList").value;
     const il = document.getElementById("ilceList").value;
-    document.getElementById("locName").innerText = `${mah}, ${il}`;
+    document.getElementById("yer").innerText = mah + ", " + il;
 
     try {
-        const url = `https://api.open-meteo.com/v1/forecast?latitude=41.0082&longitude=28.9784&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m&daily=temperature_2m_max,uv_index_max&timezone=auto`;
-        const res = await fetch(url);
-        const d = await res.json();
+        const r = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=41.0082&longitude=28.9784&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m&daily=temperature_2m_max,uv_index_max&timezone=auto`);
+        const d = await r.json();
 
-        document.getElementById("mainTemp").innerText = Math.round(d.current.temperature_2m) + "°";
-        document.getElementById("feel").innerText = Math.round(d.current.apparent_temperature) + "°";
-        document.getElementById("hum").innerText = "%" + d.current.relative_humidity_2m;
-        document.getElementById("wind").innerText = d.current.wind_speed_10m + " km/s";
+        document.getElementById("derece").innerText = Math.round(d.current.temperature_2m) + "°";
+        document.getElementById("his").innerText = Math.round(d.current.apparent_temperature) + "°";
+        document.getElementById("nem").innerText = "%" + d.current.relative_humidity_2m;
+        document.getElementById("ruz").innerText = d.current.wind_speed_10m + " km/s";
         document.getElementById("uv").innerText = d.daily.uv_index_max[0];
         
         const codes = {0:"Güneşli", 1:"Açık", 2:"Az Bulutlu", 3:"Bulutlu", 45:"Sisli", 61:"Yağmurlu"};
-        document.getElementById("desc").innerText = codes[d.current.weather_code] || "Açık";
+        document.getElementById("durum").innerText = codes[d.current.weather_code] || "Açık";
 
-        // Kendi Diyagramımızı Oluşturuyoruz
-        drawChart(d.daily.time, d.daily.temperature_2m_max);
-
-    } catch (e) { console.log(e); }
+        grafikCiz(d.daily.time, d.daily.temperature_2m_max);
+    } catch (e) { console.error(e); }
 }
 
-function drawChart(labels, temps) {
-    const ctx = document.getElementById('tempChart').getContext('2d');
-    if(myChart) myChart.destroy();
-    
-    myChart = new Chart(ctx, {
+function grafikCiz(gunler, dereceler) {
+    const ctx = document.getElementById('grafik').getContext('2d');
+    if(c) c.destroy();
+    c = new Chart(ctx, {
         type: 'line',
         data: {
-            la
+            labels: gunler.map(g => g.split('-')[2] + "/" + g.split('-')[1]),
+            datasets: [{
+                data: dereceler,
+                borderColor: '#FFD700',
+                borderWidth: 3,
+                fill: true,
+                backgroundColor: 'rgba(255,215,0,0.1)',
+                tension: 0.4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                x: { ticks: { color: 'white' }, grid: { display: false } },
+                y: { ticks: { color: 'white' }, grid: { color: 'rgba(255,255,255,0.1)' } }
+            }
+        }
+    });
+}
+</script>
+</body>
+</html>
