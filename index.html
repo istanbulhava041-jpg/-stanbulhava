@@ -3,66 +3,68 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>İSTANBUL HAVA PRO v24</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <title>İSTANBUL HAVA v25.0</title>
     <style>
-        :root { --bg: #020617; --card: rgba(30, 41, 59, 0.7); --accent: #38bdf8; --neon: #00f2ff; --warn: #f43f5e; }
+        :root { --bg: #020617; --card: rgba(30, 41, 59, 0.85); --accent: #38bdf8; --neon: #00f2ff; --warn: #f43f5e; }
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif; display: flex; flex-direction: column; align-items: center; min-height: 100vh; transition: 0.5s; }
+        body { background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif; display: flex; flex-direction: column; align-items: center; min-height: 100vh; transition: 0.5s; overflow-x: hidden; }
         
-        /* Arka Plan Durumları */
+        /* Dinamik Arka Planlar */
         body.sunny { background: linear-gradient(180deg, #0ea5e9, #020617); }
         body.rainy { background: linear-gradient(180deg, #334155, #020617); }
         body.night { background: linear-gradient(180deg, #0f172a, #000000); }
 
-        .header { width: 100%; padding: 15px; display: flex; justify-content: space-between; align-items: center; background: rgba(15, 23, 42, 0.8); border-bottom: 2px solid var(--neon); position: sticky; top: 0; z-index: 1000; }
+        .header { width: 100%; padding: 15px; display: flex; justify-content: space-between; align-items: center; background: rgba(15, 23, 42, 0.9); border-bottom: 2px solid var(--neon); position: sticky; top: 0; z-index: 1000; }
         .main { width: 100%; max-width: 450px; padding: 10px; display: flex; flex-direction: column; gap: 12px; }
-        .glass { background: var(--card); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 20px; padding: 15px; }
+        .glass { background: var(--card); backdrop-filter: blur(15px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 20px; padding: 15px; }
         
-        /* Saatlik Kaydırma Alanı */
-        .scroll-x { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 8px; scrollbar-width: none; }
+        .scroll-x { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 10px; }
         .scroll-x::-webkit-scrollbar { display: none; }
         .hour-card { min-width: 65px; text-align: center; background: rgba(255,255,255,0.05); padding: 10px; border-radius: 15px; border: 1px solid rgba(0,242,255,0.1); }
 
-        /* Haftalık Liste */
-        .day-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 5px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .day-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
         .day-row:last-child { border: none; }
-        .emoji-box { font-size: 24px; width: 40px; text-align: center; }
 
-        #temp-val { font-size: 80px; font-weight: 900; margin: 10px 0; }
-        select { width: 100%; padding: 15px; border-radius: 15px; background: #1e293b; color: white; border: 1px solid var(--accent); font-size: 16px; outline: none; }
+        #temp-val { font-size: 80px; font-weight: 900; margin: 5px 0; text-shadow: 0 0 20px rgba(0,242,255,0.3); }
+        select { width: 100%; padding: 15px; border-radius: 15px; background: #1e293b; color: white; border: 1px solid var(--accent); font-size: 16px; outline: none; appearance: none; text-align: center; }
         
+        /* Yan Menü (Hamburger) */
         .sidebar { position: fixed; top: 0; left: -100%; width: 280px; height: 100%; background: #0f172a; z-index: 2000; transition: 0.3s; padding: 25px; border-right: 2px solid var(--neon); }
         .sidebar.open { left: 0; }
+        .sidebar-btn { width: 100%; padding: 12px; margin-bottom: 12px; border-radius: 10px; border: 1px solid var(--accent); background: rgba(56,189,248,0.1); color: white; text-decoration: none; display: block; text-align: center; font-weight: bold; }
     </style>
 </head>
 <body id="body">
 
 <div id="sidebar" class="sidebar">
-    <button onclick="toggleMenu()" style="float:right; background:none; border:none; color:var(--warn); font-size:30px;">×</button>
-    <h3 style="color:var(--neon); margin-bottom: 20px;">İSTANBUL PRO</h3>
-    <a href="mailto:istanbulhava041@gmail.com" style="color:var(--accent); text-decoration:none; font-size:14px;">📧 istanbulhava041@gmail.com</a>
+    <button onclick="toggleMenu()" style="float:right; background:none; border:none; color:var(--warn); font-size:35px;">×</button>
+    <h2 style="color:var(--neon); margin: 30px 0;">İSTANBUL MENÜ</h2>
+    <a href="https://uym.ibb.gov.tr/" target="_blank" class="sidebar-btn">🚗 Canlı Trafik</a>
+    <a href="https://www.iski.gov.tr" target="_blank" class="sidebar-btn">💧 Baraj Doluluk</a>
+    <a href="https://www.istanbuleczaciodasi.org.tr/nobetci-eczane" target="_blank" class="sidebar-btn">🏥 Nöbetçi Eczaneler</a>
+    <div style="margin-top: 50px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px;">
+        <small style="opacity:0.6">İletişim:</small><br>
+        <b style="color:var(--accent); font-size:14px;">istanbulhava041@gmail.com</b>
+    </div>
 </div>
 
 <div class="header">
     <button onclick="toggleMenu()" style="background:none; border:none; color:var(--neon); font-size:25px;">☰</button>
     <div id="clock" style="font-weight: bold; color: #fbbf24;">00:00</div>
-    <b style="color:var(--neon)">v24.0</b>
+    <b style="color:var(--neon)">v25.0</b>
 </div>
 
 <div class="main">
-    <div class="glass">
-        <select id="ilce" onchange="fetchData()"></select>
-    </div>
+    <div class="glass"><select id="ilce" onchange="fetchData()"></select></div>
 
     <div class="glass" style="text-align: center;">
         <div id="loc" style="font-size: 14px; opacity: 0.6; letter-spacing: 2px;">İSTANBUL</div>
         <div id="temp-val">--°</div>
-        <div id="desc" style="color:var(--neon); font-weight: bold; font-size: 18px;">YÜKLENİYOR...</div>
+        <div id="desc" style="color:var(--neon); font-weight: bold; font-size: 20px;">YÜKLENİYOR...</div>
     </div>
 
     <div class="glass">
-        <p style="font-size: 12px; color: var(--accent); margin-bottom: 10px;">🕒 24 SAATLİK AKIŞ (KAYDIRIN)</p>
+        <p style="font-size: 12px; color: var(--accent); margin-bottom: 10px;">🕒 SAATLİK AKIŞ (KAYDIRIN)</p>
         <div class="scroll-x" id="hourly"></div>
     </div>
 
@@ -97,40 +99,25 @@ async function fetchData() {
         const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code&hourly=temperature_2m,weather_code&daily=weather_code,temperature_2m_max,temperature_2m_min&timezone=auto`);
         const data = await res.json();
 
-        // Güncel
-        document.getElementById("temp-val").innerText = Math.round(data.current.temperature_2m) + "°";
         const codes = {0:"☀️ Açık", 1:"🌤️ Açık", 2:"⛅ Bulutlu", 3:"☁️ Kapalı", 45:"🌫️ Sisli", 61:"🌧️ Yağmurlu", 71:"❄️ Karlı", 95:"⚡ Fırtına"};
+        document.getElementById("temp-val").innerText = Math.round(data.current.temperature_2m) + "°";
         document.getElementById("desc").innerText = (codes[data.current.weather_code] || "Açık").toUpperCase();
 
-        // Dinamik Arkaplan
         const hr = new Date().getHours();
-        const b = document.getElementById("body");
-        b.className = (hr > 19 || hr < 7) ? "night" : (data.current.weather_code > 50 ? "rainy" : "sunny");
+        document.getElementById("body").className = (hr > 19 || hr < 7) ? "night" : (data.current.weather_code > 50 ? "rainy" : "sunny");
 
-        // Saatlik (Kaydırmalı Kartlar)
         const hDiv = document.getElementById("hourly");
         hDiv.innerHTML = "";
         for(let i=0; i<24; i++) {
-            hDiv.innerHTML += `
-                <div class="hour-card">
-                    <small style="opacity:0.6">${i}:00</small>
-                    <div style="font-size:20px; margin:5px 0">${codes[data.hourly.weather_code[i]].split(' ')[0]}</div>
-                    <b>${Math.round(data.hourly.temperature_2m[i])}°</b>
-                </div>`;
+            hDiv.innerHTML += `<div class="hour-card"><small>${i}:00</small><div style="font-size:20px; margin:5px 0">${codes[data.hourly.weather_code[i]].split(' ')[0]}</div><b>${Math.round(data.hourly.temperature_2m[i])}°</b></div>`;
         }
 
-        // Haftalık
         const wDiv = document.getElementById("weekly");
         wDiv.innerHTML = "";
         const gunler = ["Pazar", "Pzt", "Sal", "Çar", "Per", "Cum", "Cmt"];
         for(let i=0; i<7; i++) {
-            const date = new Date(data.daily.time[i]);
-            wDiv.innerHTML += `
-                <div class="day-row">
-                    <span style="width:70px">${i==0 ? 'Bugün' : gunler[date.getDay()]}</span>
-                    <div class="emoji-box">${codes[data.daily.weather_code[i]].split(' ')[0]}</div>
-                    <span style="width:80px; text-align:right"><b>${Math.round(data.daily.temperature_2m_max[i])}°</b> <small style="opacity:0.5">${Math.round(data.daily.temperature_2m_min[i])}°</small></span>
-                </div>`;
+            const d = new Date(data.daily.time[i]);
+            wDiv.innerHTML += `<div class="day-row"><span>${i==0 ? 'Bugün' : gunler[d.getDay()]}</span><span style="font-size:22px">${codes[data.daily.weather_code[i]].split(' ')[0]}</span><span><b>${Math.round(data.daily.temperature_2m_max[i])}°</b> <small style="opacity:0.5">${Math.round(data.daily.temperature_2m_min[i])}°</small></span></div>`;
         }
     } catch(e) { console.error("Hata"); }
 }
