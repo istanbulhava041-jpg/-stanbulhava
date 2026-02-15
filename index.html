@@ -162,4 +162,30 @@ async function fetchData() {
         document.getElementById("sc-hali").innerText = (currentPrec > 0 ? "2/10" : "10/10");
         document.getElementById("sc-mangal").innerText = (currentTemp < 15 || currentPrec > 0 ? "1/10" : "9/10");
         document.getElementById("sc-vapur").innerText = (currentWind > 42 ? "Riskli" : "Normal");
-        document.getElementById("sc-b
+        document.getElementById("sc-balik").innerText = (currentTemp < 17 ? "Zengin" : "Normal");
+
+        const codes = {0: "Güneşli", 1: "Açık", 3: "Bulutlu", 61: "Yağmurlu", 71: "Karlı"};
+        document.getElementById("weather-desc").innerText = (codes[data.current.weather_code] || "Açık").toUpperCase();
+
+        updateChart(data.hourly.temperature_2m.slice(0, 24));
+    } catch (err) {
+        document.getElementById("weather-desc").innerText = "BAĞLANTI HATASI!";
+    }
+}
+
+function updateChart(temps) {
+    const ctx = document.getElementById('liveChart').getContext('2d');
+    if(mainChart) mainChart.destroy();
+    mainChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: Array.from({length: 24}, (_, i) => i + ":00"),
+            datasets: [{ label: 'Derece', data: temps, borderColor: '#00f2ff', tension: 0.4, fill: true, backgroundColor: 'rgba(0,242,255,0.05)' }]
+        },
+        options: { plugins: { legend: { display: false } }, scales: { y: { display: false }, x: { grid: { display: false }, ticks: { color: '#fff', font: { size: 8 } } } } }
+    });
+}
+setInterval(fetchData, 300000);
+</script>
+</body>
+</html>
