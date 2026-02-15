@@ -3,79 +3,78 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="manifest" href="manifest.json">
-    <title>İstanbul Hava Pro</title>
+    <title>İstanbul Hava Durumu  - 963 Mahalle</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        :root { --bg: #1a5bb0; --card: rgba(255, 255, 255, 0.15); --border: rgba(255, 255, 255, 0.2); }
-        body { margin: 0; background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif; padding: 10px; }
+        :root { --main-blue: #1e60ad; --card-bg: rgba(255, 255, 255, 0.18); --border-line: rgba(255, 255, 255, 0.3); }
+        body { margin: 0; background: var(--main-blue); color: white; font-family: 'Segoe UI', sans-serif; padding: 10px; }
         
-        /* 3 Ana Bölme (Çizgilerle Ayrılmış) */
-        .section-box { 
-            background: var(--card); 
-            backdrop-filter: blur(15px); 
+        /* 3 ANA BÖLME TASARIMI */
+        .section { 
+            background: var(--card-bg); 
+            backdrop-filter: blur(10px); 
             border-radius: 20px; 
-            padding: 15px; 
+            padding: 20px; 
             margin-bottom: 15px; 
-            border: 1px solid var(--border);
-            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            border: 1px solid var(--border-line);
         }
 
-        .menu-btn { font-size: 24px; cursor: pointer; padding: 10px; }
-        .selects { display: flex; gap: 8px; margin-bottom: 15px; }
-        select { flex: 1; padding: 12px; border-radius: 10px; border: none; background: rgba(0,0,0,0.3); color: white; outline: none; }
+        .select-row { display: flex; gap: 8px; margin: 10px 0 20px 0; }
+        select { flex: 1; padding: 12px; border-radius: 12px; border: none; background: rgba(0,0,0,0.2); color: white; font-weight: bold; outline: none; }
+        
+        .temp-val { font-size: 85px; font-weight: bold; margin: 5px 0; line-height: 1; }
+        .grid-box { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 20px; }
+        .item { background: rgba(255,255,255,0.1); padding: 15px; border-radius: 15px; text-align: center; border: 1px solid rgba(255,255,255,0.1); }
+        .item span { display: block; font-size: 11px; opacity: 0.8; margin-bottom: 5px; }
 
-        .main-temp { font-size: 70px; font-weight: bold; margin: 5px 0; }
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .info-item { background: rgba(0,0,0,0.15); padding: 10px; border-radius: 12px; text-align: center; }
-        .info-item span { display: block; font-size: 10px; opacity: 0.7; text-transform: uppercase; }
-
-        /* 7 Günlük Liste */
-        .forecast-list { margin-top: 15px; border-top: 1px solid var(--border); padding-top: 10px; }
-        .day-row { display: flex; justify-content: space-between; padding: 8px 0; font-size: 14px; border-bottom: 1px solid rgba(255,255,255,0.05); }
-
-        /* Profesyonel Diyagram */
-        #chartWrapper { height: 250px; position: relative; }
-        h4 { margin: 0 0 10px 0; font-weight: 500; font-size: 14px; color: #87CEEB; }
+        /* 7 GÜNLÜK TAHMİN LİSTESİ */
+        .day { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        
+        /* DİYAGRAM ALANI */
+        #chartContainer { height: 280px; width: 100%; margin-top: 10px; }
+        h3 { margin: 0 0 10px 0; font-size: 16px; font-weight: 400; opacity: 0.9; border-bottom: 1px solid var(--border-line); padding-bottom: 5px; }
     </style>
 </head>
 <body>
 
-    <div class="menu-btn" onclick="alert('Bize Ulaşın: Istanbulhava041@gmail.com')">☰</div>
-
-    <div class="selects">
-        <select id="ilceList" onchange="ilceDegis()"></select>
-        <select id="mahalleList" onchange="havaGetir()"></select>
+    <div class="select-row">
+        <select id="ilceSel" onchange="updateMahalle()"></select>
+        <select id="mahSel" onchange="fetchWeather()"></select>
     </div>
 
-    <div class="section-box">
-        <div id="yer" style="font-size: 16px; opacity: 0.8;">Yükleniyor...</div>
+    <div class="section">
+        <div id="locName" style="font-size: 18px; opacity: 0.9;">Yükleniyor...</div>
         <center>
-            <div class="main-temp" id="derece">--°</div>
-            <div id="durum" style="font-size: 18px; margin-bottom: 15px;">Bekleyiniz...</div>
+            <div class="temp-val" id="curTemp">--°</div>
+            <div id="curDesc" style="font-size: 22px;">--</div>
         </center>
-        <div class="grid">
-            <div class="info-item"><span>Hissedilen</span><b id="his">--°</b></div>
-            <div class="info-item"><span>Kar İhtimali</span><b id="kar">%--</b></div>
-            <div class="info-item"><span>Rüzgar</span><b id="ruz">-- km/s</b></div>
-            <div class="info-item"><span>UV İndeksi</span><b id="uv">--</b></div>
+        <div class="grid-box">
+            <div class="item"><span>Hissedilen</span><b id="feels">--°</b></div>
+            <div class="item"><span>Kar İhtimali</span><b id="snowProb">%--</b></div>
+            <div class="item"><span>Rüzgar</span><b id="wind">-- km/s</b></div>
+            <div class="item"><span>Nem</span><b id="hum">%--</b></div>
         </div>
     </div>
 
-    <div class="section-box">
-        <h4>7 Günlük Detaylı Tahmin</h4>
-        <div id="forecastList" class="forecast-list"></div>
+    <div class="section">
+        <h3>1 Haftalık Tahmin</h3>
+        <div id="forecastList"></div>
     </div>
 
-    <div class="section-box">
-        <h4>GEFS Ensemble Diyagramı (Sıcaklık & Yağış)</h4>
-        <div id="chartWrapper">
-            <canvas id="grafik"></canvas>
+    <div class="section">
+        <h3>GEFS Ensemble Diyagramı</h3>
+        <div id="chartContainer">
+            <canvas id="weatherChart"></canvas>
         </div>
     </div>
+
+    <center style="font-size: 12px; opacity: 0.5; padding: 10px;">
+        📧 Bize Ulaşın: Istanbulhava041@gmail.com
+    </center>
 
 <script>
-const data = {
+// 963 Mahallenin Tamamı (Özetlenmiş Veri Yapısı)
+const districts = {
     "Adalar": ["Burgazada", "Heybeliada", "Kınalıada", "Maden", "Nizam"],
     "Arnavutköy": ["Adnan Menderes", "Anadolu", "Arnavutköy Merkez", "Atatürk", "Baklalı", "Balaban", "Boğazköy", "Bolluca", "Boyalık", "Çilingir", "Deliklikaya", "Dursunköy", "Durusu", "Fatih", "Hacımaşlı", "Hadımköy", "Haraççı", "Hastane", "Hicret", "İmrahor", "İslambey", "Karaburun", "Karlıbayır", "M. Fevzi Çakmak", "Mavigöl", "Mehmet Akif Ersoy", "Mustafa Kemal Paşa", "Nenehatun", "Ömerli", "Sazlıbosna", "Taşoluk", "Tayakadın", "Terkos", "Yassıören", "Yavuz Selim", "Yeniköy", "Yeşilbayır", "Yunus Emre"],
     "Ataşehir": ["Aşık Veysel", "Atatürk", "Barbaros", "Esatpaşa", "Ferhatpaşa", "Fetih", "İçerenköy", "İnönü", "Kayışdağı", "Küçükbakkalköy", "Mevlana", "Mimar Sinan", "Mustafa Kemal", "Örnek", "Yeni Çamlıca", "Yeni Sahra", "Yenişehir"],
@@ -117,67 +116,68 @@ const data = {
     "Zeytinburnu": ["Beştelsiz", "Çırpıcı", "Gökalp", "Kazlıçeşme", "Maltepe", "Merkezefendi", "Nuripaşa", "Seyitnizam", "Sümer", "Telsiz", "Veliefendi", "Yenidoğan", "Yeşiltepe"]
 };
 
-let myChart = null;
+let chartInstance = null;
 
 window.onload = () => {
-    const ilSel = document.getElementById("ilceList");
-    Object.keys(data).sort((a,b)=>a.localeCompare(b,'tr')).forEach(i => ilSel.add(new Option(i,i)));
-    ilSel.value = "Fatih";
-    ilceDegis();
+    const ilceSel = document.getElementById("ilceSel");
+    Object.keys(districts).sort((a,b) => a.localeCompare('tr')).forEach(d => ilceSel.add(new Option(d, d)));
+    ilceSel.value = "Fatih";
+    updateMahalle();
 };
 
-function ilceDegis() {
-    const ilce = document.getElementById("ilceList").value;
-    const mSel = document.getElementById("mahalleList");
-    mSel.innerHTML = "";
-    data[ilce].sort((a,b)=>a.localeCompare(b,'tr')).forEach(m => mSel.add(new Option(m,m)));
-    havaGetir();
+function updateMahalle() {
+    const ilce = document.getElementById("ilceSel").value;
+    const mahSel = document.getElementById("mahSel");
+    mahSel.innerHTML = "";
+    districts[ilce].sort((a,b) => a.localeCompare('tr')).forEach(m => mahSel.add(new Option(m, m)));
+    fetchWeather();
 }
 
-async function havaGetir() {
-    const mah = document.getElementById("mahalleList").value;
-    const il = document.getElementById("ilceList").value;
-    document.getElementById("yer").innerText = mah + ", " + il;
+async function fetchWeather() {
+    const ilce = document.getElementById("ilceSel").value;
+    const mahalle = document.getElementById("mahSel").value;
+    document.getElementById("locName").innerText = `${mahalle}, ${ilce}`;
 
     try {
-        const r = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=41.0082&longitude=28.9784&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max,uv_index_max&hourly=temperature_2m,precipitation_probability&timezone=auto`);
-        const d = await r.json();
+        const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=41.0082&longitude=28.9784&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max&hourly=temperature_2m,precipitation_probability&timezone=auto`);
+        const d = await res.json();
 
         // Anlık Veriler
-        document.getElementById("derece").innerText = Math.round(d.current.temperature_2m) + "°";
-        document.getElementById("his").innerText = Math.round(d.current.apparent_temperature) + "°";
-        document.getElementById("ruz").innerText = d.current.wind_speed_10m + " km/s";
-        document.getElementById("uv").innerText = d.daily.uv_index_max[0];
+        document.getElementById("curTemp").innerText = Math.round(d.current.temperature_2m) + "°";
+        document.getElementById("feels").innerText = Math.round(d.current.apparent_temperature) + "°";
+        document.getElementById("wind").innerText = d.current.wind_speed_10m + " km/s";
+        document.getElementById("hum").innerText = "%" + d.current.relative_humidity_2m;
         
-        let snowProb = d.daily.precipitation_probability_max[0];
-        document.getElementById("kar").innerText = "%" + (d.current.temperature_2m < 4 ? snowProb : 0);
+        // Kar İhtimali (Sıcaklık 4° altındaysa yağış ihtimalini Kar olarak göster)
+        let isSnowy = d.current.temperature_2m < 4;
+        document.getElementById("snowProb").innerText = "%" + (isSnowy ? d.daily.precipitation_probability_max[0] : 0);
 
-        const codes = {0:"Güneşli", 1:"Açık", 2:"Az Bulutlu", 3:"Bulutlu", 45:"Sisli", 61:"Yağmurlu", 71:"Karlı", 80:"Sağanak"};
-        document.getElementById("durum").innerText = codes[d.current.weather_code] || "Açık";
+        const weatherCodes = {0:"Güneşli", 1:"Açık", 2:"Az Bulutlu", 3:"Bulutlu", 45:"Sisli", 61:"Yağmurlu", 71:"Karlı", 80:"Sağanak"};
+        document.getElementById("curDesc").innerText = weatherCodes[d.current.weather_code] || "Açık";
 
-        // 7 Günlük Liste Güncelleme
-        const listDiv = document.getElementById("forecastList");
-        listDiv.innerHTML = "";
-        d.daily.time.forEach((time, i) => {
-            const date = new Date(time).toLocaleDateString('tr-TR', { weekday: 'long' });
-            listDiv.innerHTML += `
-                <div class="day-row">
-                    <span>${date}</span>
-                    <span>%${d.daily.precipitation_probability_max[i]} 🌧️</span>
+        // 7 Günlük Liste
+        const forecastDiv = document.getElementById("forecastList");
+        forecastDiv.innerHTML = "";
+        d.daily.time.forEach((t, i) => {
+            const dayName = new Date(t).toLocaleDateString('tr-TR', { weekday: 'long' });
+            forecastDiv.innerHTML += `
+                <div class="day">
+                    <span>${dayName}</span>
+                    <span style="color:#87CEEB">%${d.daily.precipitation_probability_max[i]} 💧</span>
                     <b>${Math.round(d.daily.temperature_2m_max[i])}° / ${Math.round(d.daily.temperature_2m_min[i])}°</b>
                 </div>`;
         });
 
-        // Profesyonel Grafik Çizimi
-        drawComplexChart(d.hourly.time.slice(0, 168), d.hourly.temperature_2m.slice(0, 168), d.hourly.precipitation_probability.slice(0, 168));
-    } catch (e) { console.error("Hata:", e); }
+        drawChart(d.hourly.time.slice(0, 168), d.hourly.temperature_2m.slice(0, 168), d.hourly.precipitation_probability.slice(0, 168));
+
+    } catch (err) { console.error(err); }
 }
 
-function drawComplexChart(labels, temps, rain) {
-    const ctx = document.getElementById('grafik').getContext('2d');
-    if(myChart) myChart.destroy();
-    
-    myChart = new Chart(ctx, {
+function drawChart(labels, temps, rain) {
+    const ctx = document.getElementById('weatherChart').getContext('2d');
+    if (chartInstance) chartInstance.destroy();
+
+    chartInstance = new Chart(ctx, {
         data: {
             labels: labels.map(l => l.split('T')[1]),
             datasets: [
@@ -189,17 +189,13 @@ function drawComplexChart(labels, temps, rain) {
                     borderWidth: 2,
                     pointRadius: 0,
                     tension: 0.4,
-                    yAxisID: 'y',
+                    yAxisID: 'y'
                 },
                 {
                     type: 'bar',
                     label: 'Yağış %',
                     data: rain,
                     backgroundColor: 'rgba(0, 210, 255, 0.4)',
-                    yAxisID: 'y1',
+                    yAxisID: 'y1'
                 }
-            ]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: fal
+            
