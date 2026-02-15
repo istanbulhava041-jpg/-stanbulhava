@@ -3,90 +3,89 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>İSTANBUL HAVA v25.0</title>
+    <title>İSTANBUL HAVA v26.0</title>
     <style>
-        :root { --bg: #020617; --card: rgba(30, 41, 59, 0.85); --accent: #38bdf8; --neon: #00f2ff; --warn: #f43f5e; }
+        :root { --bg: #020617; --card: rgba(30, 41, 59, 0.9); --accent: #38bdf8; --neon: #00f2ff; --warn: #f43f5e; }
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif; display: flex; flex-direction: column; align-items: center; min-height: 100vh; transition: 0.5s; overflow-x: hidden; }
+        body { background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif; min-height: 100vh; display: flex; flex-direction: column; align-items: center; transition: 0.5s; overflow-x: hidden; }
         
-        /* Dinamik Arka Planlar */
         body.sunny { background: linear-gradient(180deg, #0ea5e9, #020617); }
         body.rainy { background: linear-gradient(180deg, #334155, #020617); }
         body.night { background: linear-gradient(180deg, #0f172a, #000000); }
 
-        .header { width: 100%; padding: 15px; display: flex; justify-content: space-between; align-items: center; background: rgba(15, 23, 42, 0.9); border-bottom: 2px solid var(--neon); position: sticky; top: 0; z-index: 1000; }
-        .main { width: 100%; max-width: 450px; padding: 10px; display: flex; flex-direction: column; gap: 12px; }
-        .glass { background: var(--card); backdrop-filter: blur(15px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 20px; padding: 15px; }
+        .header { width: 100%; padding: 15px; display: flex; justify-content: space-between; align-items: center; background: rgba(15, 23, 42, 0.95); border-bottom: 2px solid var(--neon); position: sticky; top: 0; z-index: 1000; }
+        .main { width: 100%; max-width: 450px; padding: 12px; display: flex; flex-direction: column; gap: 12px; }
+        .glass { background: var(--card); backdrop-filter: blur(15px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 20px; padding: 18px; }
         
-        .scroll-x { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 10px; }
+        .scroll-x { display: flex; gap: 12px; overflow-x: auto; padding: 5px 0 12px 0; scrollbar-width: none; }
         .scroll-x::-webkit-scrollbar { display: none; }
-        .hour-card { min-width: 65px; text-align: center; background: rgba(255,255,255,0.05); padding: 10px; border-radius: 15px; border: 1px solid rgba(0,242,255,0.1); }
+        .hour-card { min-width: 70px; text-align: center; background: rgba(255,255,255,0.05); padding: 12px; border-radius: 15px; border: 1px solid rgba(0,242,255,0.1); }
 
-        .day-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .day-row { display: flex; justify-content: space-between; align-items: center; padding: 14px 0; border-bottom: 1px solid rgba(255,255,255,0.08); }
         .day-row:last-child { border: none; }
 
-        #temp-val { font-size: 80px; font-weight: 900; margin: 5px 0; text-shadow: 0 0 20px rgba(0,242,255,0.3); }
-        select { width: 100%; padding: 15px; border-radius: 15px; background: #1e293b; color: white; border: 1px solid var(--accent); font-size: 16px; outline: none; appearance: none; text-align: center; }
+        #temp-val { font-size: 85px; font-weight: 900; margin: 5px 0; letter-spacing: -3px; }
+        select { width: 100%; padding: 16px; border-radius: 15px; background: #1e293b; color: white; border: 2px solid var(--accent); font-size: 17px; outline: none; appearance: none; text-align: center; font-weight: bold; }
         
-        /* Yan Menü (Hamburger) */
-        .sidebar { position: fixed; top: 0; left: -100%; width: 280px; height: 100%; background: #0f172a; z-index: 2000; transition: 0.3s; padding: 25px; border-right: 2px solid var(--neon); }
+        .sidebar { position: fixed; top: 0; left: -100%; width: 280px; height: 100%; background: #0f172a; z-index: 2000; transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1); padding: 25px; border-right: 3px solid var(--neon); }
         .sidebar.open { left: 0; }
-        .sidebar-btn { width: 100%; padding: 12px; margin-bottom: 12px; border-radius: 10px; border: 1px solid var(--accent); background: rgba(56,189,248,0.1); color: white; text-decoration: none; display: block; text-align: center; font-weight: bold; }
+        .sidebar-btn { width: 100%; padding: 14px; margin-bottom: 12px; border-radius: 12px; border: 1px solid var(--accent); background: rgba(56,189,248,0.1); color: white; text-decoration: none; display: block; text-align: center; font-weight: bold; font-size: 15px; }
     </style>
 </head>
 <body id="body">
 
 <div id="sidebar" class="sidebar">
-    <button onclick="toggleMenu()" style="float:right; background:none; border:none; color:var(--warn); font-size:35px;">×</button>
-    <h2 style="color:var(--neon); margin: 30px 0;">İSTANBUL MENÜ</h2>
+    <button onclick="toggleMenu()" style="float:right; background:none; border:none; color:var(--warn); font-size:40px; cursor:pointer;">&times;</button>
+    <h2 style="color:var(--neon); margin: 40px 0 20px 0;">İSTANBUL MENÜ</h2>
     <a href="https://uym.ibb.gov.tr/" target="_blank" class="sidebar-btn">🚗 Canlı Trafik</a>
     <a href="https://www.iski.gov.tr" target="_blank" class="sidebar-btn">💧 Baraj Doluluk</a>
     <a href="https://www.istanbuleczaciodasi.org.tr/nobetci-eczane" target="_blank" class="sidebar-btn">🏥 Nöbetçi Eczaneler</a>
-    <div style="margin-top: 50px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px;">
-        <small style="opacity:0.6">İletişim:</small><br>
-        <b style="color:var(--accent); font-size:14px;">istanbulhava041@gmail.com</b>
+    <div style="margin-top: 60px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 25px;">
+        <p style="opacity:0.6; font-size: 12px;">Bize Ulaşın:</p>
+        <b style="color:var(--accent); font-size:14px; word-break: break-all;">istanbulhava041@gmail.com</b>
     </div>
 </div>
 
 <div class="header">
-    <button onclick="toggleMenu()" style="background:none; border:none; color:var(--neon); font-size:25px;">☰</button>
-    <div id="clock" style="font-weight: bold; color: #fbbf24;">00:00</div>
-    <b style="color:var(--neon)">v25.0</b>
+    <button onclick="toggleMenu()" style="background:none; border:none; color:var(--neon); font-size:28px; cursor:pointer;">☰</button>
+    <div id="clock" style="font-weight: bold; color: #fbbf24; font-size: 18px;">00:00</div>
+    <b style="color:var(--neon); letter-spacing: 1px;">V26.0 PRO</b>
 </div>
 
 <div class="main">
     <div class="glass"><select id="ilce" onchange="fetchData()"></select></div>
 
     <div class="glass" style="text-align: center;">
-        <div id="loc" style="font-size: 14px; opacity: 0.6; letter-spacing: 2px;">İSTANBUL</div>
+        <div id="loc" style="font-size: 14px; opacity: 0.7; letter-spacing: 3px; font-weight: bold;">İSTANBUL</div>
         <div id="temp-val">--°</div>
-        <div id="desc" style="color:var(--neon); font-weight: bold; font-size: 20px;">YÜKLENİYOR...</div>
+        <div id="desc" style="color:var(--neon); font-weight: bold; font-size: 22px;">BAĞLANILIYOR...</div>
     </div>
 
     <div class="glass">
-        <p style="font-size: 12px; color: var(--accent); margin-bottom: 10px;">🕒 SAATLİK AKIŞ (KAYDIRIN)</p>
-        <div class="scroll-x" id="hourly"></div>
+        <p style="font-size: 12px; color: var(--accent); margin-bottom: 12px; font-weight: bold;">🕒 24 SAATLİK AKIŞ</p>
+        <div class="scroll-x" id="hourly">Yükleniyor...</div>
     </div>
 
     <div class="glass">
-        <p style="font-size: 12px; color: var(--accent); margin-bottom: 10px;">📅 7 GÜNLÜK TAHMİN</p>
-        <div id="weekly"></div>
+        <p style="font-size: 12px; color: var(--accent); margin-bottom: 12px; font-weight: bold;">📅 7 GÜNLÜK TAHMİN</p>
+        <div id="weekly">Tahminler hazırlanıyor...</div>
     </div>
 </div>
 
 <script>
 const coords = {"Adalar":[40.87,29.13],"Arnavutköy":[41.18,28.74],"Ataşehir":[40.99,29.11],"Avcılar":[40.98,28.71],"Bağcılar":[41.03,28.83],"Bahçelievler":[40.99,28.86],"Bakırköy":[40.97,28.87],"Başakşehir":[41.09,28.80],"Bayrampaşa":[41.04,28.89],"Beşiktaş":[41.04,29.00],"Beykoz":[41.11,29.09],"Beylikdüzü":[40.99,28.64],"Beyoğlu":[41.03,28.97],"Büyükçekmece":[41.02,28.59],"Çatalca":[41.14,28.46],"Çekmeköy":[41.04,29.21],"Esenler":[41.04,28.87],"Esenyurt":[41.03,28.67],"Eyüpsultan":[41.04,28.93],"Fatih":[41.01,28.94],"Gaziosmanpaşa":[41.05,28.91],"Güngören":[41.02,28.87],"Kadıköy":[40.99,29.02],"Kağıthane":[41.08,28.97],"Kartal":[40.89,29.19],"Küçükçekmece":[41.00,28.77],"Maltepe":[40.93,29.14],"Pendik":[40.87,29.23],"Sancaktepe":[41.00,29.23],"Sarıyer":[41.16,29.05],"Silivri":[41.07,28.24],"Sultanbeyli":[40.96,29.26],"Sultangazi":[41.10,28.87],"Şile":[41.17,29.61],"Şişli":[41.06,28.98],"Tuzla":[40.82,29.30],"Ümraniye":[41.03,29.10],"Üsküdar":[41.02,29.01],"Zeytinburnu":[40.99,28.90]};
 
+const codes = {0:"☀️ Açık", 1:"🌤️ Açık", 2:"⛅ Bulutlu", 3:"☁️ Kapalı", 45:"🌫️ Sisli", 61:"🌧️ Yağmurlu", 71:"❄️ Karlı", 95:"⚡ Fırtına"};
+
 function toggleMenu() { document.getElementById('sidebar').classList.toggle('open'); }
 
 window.onload = () => {
     const s = document.getElementById("ilce");
-    Object.keys(coords).sort().forEach(i => s.add(new Option(i, i)));
+    Object.keys(coords).sort((a,b) => a.localeCompare(b,'tr')).forEach(i => s.add(new Option(i, i)));
     s.value = "Fatih";
     fetchData();
     setInterval(() => {
-        const d = new Date();
-        document.getElementById('clock').innerText = d.toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'});
+        document.getElementById('clock').innerText = new Date().toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'});
     }, 1000);
 };
 
@@ -96,30 +95,47 @@ async function fetchData() {
     document.getElementById("loc").innerText = ilce.toUpperCase();
 
     try {
-        const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code&hourly=temperature_2m,weather_code&daily=weather_code,temperature_2m_max,temperature_2m_min&timezone=auto`);
+        const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code&hourly=temperature_2m,weather_code&daily=weather_code,temperature_2m_max,temperature_2m_min&timezone=auto`;
+        const res = await fetch(url);
         const data = await res.json();
 
-        const codes = {0:"☀️ Açık", 1:"🌤️ Açık", 2:"⛅ Bulutlu", 3:"☁️ Kapalı", 45:"🌫️ Sisli", 61:"🌧️ Yağmurlu", 71:"❄️ Karlı", 95:"⚡ Fırtına"};
+        // Güncel Durum
         document.getElementById("temp-val").innerText = Math.round(data.current.temperature_2m) + "°";
         document.getElementById("desc").innerText = (codes[data.current.weather_code] || "Açık").toUpperCase();
 
+        // Arka Plan Ayarı
         const hr = new Date().getHours();
         document.getElementById("body").className = (hr > 19 || hr < 7) ? "night" : (data.current.weather_code > 50 ? "rainy" : "sunny");
 
+        // Saatlik Akış (24 Saat)
         const hDiv = document.getElementById("hourly");
         hDiv.innerHTML = "";
         for(let i=0; i<24; i++) {
-            hDiv.innerHTML += `<div class="hour-card"><small>${i}:00</small><div style="font-size:20px; margin:5px 0">${codes[data.hourly.weather_code[i]].split(' ')[0]}</div><b>${Math.round(data.hourly.temperature_2m[i])}°</b></div>`;
+            hDiv.innerHTML += `<div class="hour-card"><small>${i}:00</small><div style="font-size:22px; margin:6px 0">${codes[data.hourly.weather_code[i]].split(' ')[0]}</div><b>${Math.round(data.hourly.temperature_2m[i])}°</b></div>`;
         }
 
+        // Haftalık Tahmin (7 Gün)
         const wDiv = document.getElementById("weekly");
         wDiv.innerHTML = "";
-        const gunler = ["Pazar", "Pzt", "Sal", "Çar", "Per", "Cum", "Cmt"];
-        for(let i=0; i<7; i++) {
-            const d = new Date(data.daily.time[i]);
-            wDiv.innerHTML += `<div class="day-row"><span>${i==0 ? 'Bugün' : gunler[d.getDay()]}</span><span style="font-size:22px">${codes[data.daily.weather_code[i]].split(' ')[0]}</span><span><b>${Math.round(data.daily.temperature_2m_max[i])}°</b> <small style="opacity:0.5">${Math.round(data.daily.temperature_2m_min[i])}°</small></span></div>`;
-        }
-    } catch(e) { console.error("Hata"); }
+        const gunler = ["Pazar", "Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma", "Cumartesi"];
+        
+        data.daily.time.forEach((time, i) => {
+            const d = new Date(time);
+            wDiv.innerHTML += `
+                <div class="day-row">
+                    <span style="font-weight:bold; width:90px">${i==0 ? 'Bugün' : gunler[d.getDay()]}</span>
+                    <span style="font-size:24px">${codes[data.daily.weather_code[i]].split(' ')[0]}</span>
+                    <span style="text-align:right; width:90px">
+                        <b style="font-size:16px">${Math.round(data.daily.temperature_2m_max[i])}°</b> 
+                        <small style="opacity:0.5; margin-left:5px">${Math.round(data.daily.temperature_2m_min[i])}°</small>
+                    </span>
+                </div>`;
+        });
+
+    } catch(e) { 
+        document.getElementById("desc").innerText = "HATA OLUŞTU!";
+        console.error(e);
+    }
 }
 </script>
 </body>
