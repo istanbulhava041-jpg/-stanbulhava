@@ -4,53 +4,43 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="manifest" href="manifest.json">
-    <title>İstanbul Hava Pro</title>
+    <title>İstanbul Hava Durumu Pro</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body { margin: 0; background: #1a5bb0; color: white; font-family: sans-serif; padding: 15px; }
         .menu-btn { position: fixed; top: 15px; left: 15px; font-size: 28px; cursor: pointer; z-index: 1001; background: rgba(0,0,0,0.3); padding: 5px 12px; border-radius: 8px; }
         .side-menu { position: fixed; top: 0; left: -100%; width: 100%; height: 100%; background: #16213e; z-index: 1000; transition: 0.3s; padding: 80px 20px; box-sizing: border-box; overflow-y: auto; }
         .side-menu.active { left: 0; }
         .side-menu a { display: block; padding: 15px; color: #87CEEB; text-decoration: none; font-size: 18px; border-bottom: 1px solid rgba(255,255,255,0.1); }
-        
         .selects { display: flex; gap: 8px; margin: 60px 0 20px 0; }
         select { flex: 1; padding: 12px; border-radius: 12px; border: none; background: rgba(255,255,255,0.2); color: white; font-weight: bold; outline: none; }
         select option { color: #333; }
-
         .card { background: rgba(255,255,255,0.15); backdrop-filter: blur(10px); border-radius: 25px; padding: 25px; text-align: center; border: 1px solid rgba(255,255,255,0.2); }
         .main-temp { font-size: 75px; font-weight: bold; margin: 10px 0; }
-        
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; }
         .box { background: rgba(0,0,0,0.2); padding: 15px; border-radius: 15px; }
         .box span { display: block; font-size: 11px; opacity: 0.7; }
-
-        .diag-box { background: white; border-radius: 15px; padding: 5px; margin-top: 20px; overflow: hidden; }
-        .diag-box img { width: 100%; display: block; border-radius: 10px; }
+        .diag-box { background: rgba(0,0,0,0.2); border-radius: 20px; padding: 15px; margin-top: 20px; height: 250px; }
     </style>
 </head>
 <body>
-
     <div class="menu-btn" onclick="toggleMenu()">☰</div>
-
     <div class="side-menu" id="sideMenu">
         <a href="javascript:void(0)" onclick="toggleMenu()">❌ Kapat</a>
         <a href="mailto:Istanbulhava041@gmail.com">📧 Bize Ulaşın</a>
         <div style="padding: 15px; font-size: 14px; color: #ccc; line-height: 1.7;">
-            <h3>Hakkımızda & Teknoloji</h3>
-            <p>Bu platform, İstanbul'un 39 ilçesi ve 963 mahallesi için en hassas meteorolojik verileri sunmak üzere geliştirilmiştir. Open-Meteo ve GEFS (Global Ensemble Forecast System) modellerini harmanlayarak size en doğru tahmini sunuyoruz.</p>
-            <p>Sistemimiz her 15 dakikada bir güncellenir. İstanbul'un mikro-klima özelliklerini analiz eden algoritmalarımız sayesinde, semtinizdeki hava değişimlerini anlık takip edebilirsiniz. Amacımız, karmaşık verileri en sade ve hızlı şekilde cebinize getirmektir.</p>
+            <h3>Hakkımızda</h3>
+            <p>İstanbul'un 39 ilçesi ve 963 mahallesi için geliştirilmiş en detaylı hava durumu uygulamasıdır. Veriler Open-Meteo ve GEFS modelleriyle anlık güncellenir.</p>
         </div>
     </div>
-
     <div class="selects">
         <select id="ilceList" onchange="ilceDegis()"></select>
         <select id="mahalleList" onchange="havaGetir()"></select>
     </div>
-
     <div class="card">
         <div id="yer" style="font-size: 18px; opacity: 0.8;">Yükleniyor...</div>
         <div class="main-temp" id="derece">--°</div>
         <div id="durum" style="font-size: 20px;">Bekleyiniz...</div>
-        
         <div class="grid">
             <div class="box"><span>Hissedilen</span><b id="his">--°</b></div>
             <div class="box"><span>Nem</span><b id="nem">%--</b></div>
@@ -58,11 +48,8 @@
             <div class="box"><span>UV</span><b id="uv">--</b></div>
         </div>
     </div>
-
-    <h4 style="margin: 25px 0 10px 5px;">İstanbul 16 Günlük GEFS Diyagramı</h4>
-    <div class="diag-box">
-        <img src="https://images.weserv.nl/?url=www.meteociel.fr/modeles/gefs/it/diagramme.php?x=0&y=0&ville=Istanbul&run=0&ext=0&mode=0&para=0" alt="Diyagram Yükleniyor...">
-    </div>
+    <h4 style="margin: 25px 0 10px 5px;">7 Günlük Sıcaklık Trendi</h4>
+    <div class="diag-box"><canvas id="grafik"></canvas></div>
 
 <script>
 const data = {
@@ -107,6 +94,7 @@ const data = {
     "Zeytinburnu": ["Beştelsiz", "Çırpıcı", "Gökalp", "Kazlıçeşme", "Maltepe", "Merkezefendi", "Nuripaşa", "Seyitnizam", "Sümer", "Telsiz", "Veliefendi", "Yenidoğan", "Yeşiltepe"]
 };
 
+let chart = null;
 function toggleMenu() { document.getElementById("sideMenu").classList.toggle("active"); }
 
 window.onload = () => {
@@ -128,18 +116,47 @@ async function havaGetir() {
     const mah = document.getElementById("mahalleList").value;
     const il = document.getElementById("ilceList").value;
     document.getElementById("yer").innerText = mah + ", " + il;
-
     try {
-        const r = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=41.0082&longitude=28.9784&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m&daily=uv_index_max&timezone=auto`);
+        const r = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=41.0082&longitude=28.9784&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m&daily=temperature_2m_max,uv_index_max&timezone=auto`);
         const d = await r.json();
         document.getElementById("derece").innerText = Math.round(d.current.temperature_2m) + "°";
         document.getElementById("his").innerText = Math.round(d.current.apparent_temperature) + "°";
         document.getElementById("nem").innerText = "%" + d.current.relative_humidity_2m;
         document.getElementById("ruz").innerText = d.current.wind_speed_10m + " km/s";
         document.getElementById("uv").innerText = d.daily.uv_index_max[0];
-        const codes = {0:"Güneşli", 1:"Açık", 2:"Az Bulutlu", 3:"Bulutlu", 45:"Sisli", 61:"Yağmurlu"};
+        const codes = {0:"Güneşli", 1:"Açık", 2:"Az Bulutlu", 3:"Bulutlu", 45:"Sisli", 61:"Yağmurlu", 63:"Yağmurlu", 80:"Sağanak", 71:"Karlı"};
         document.getElementById("durum").innerText = codes[d.current.weather_code] || "Açık";
+        ciz(d.daily.time, d.daily.temperature_2m_max);
     } catch (e) { console.error(e); }
+}
+
+function ciz(labels, temps) {
+    const ctx = document.getElementById('grafik').getContext('2d');
+    if(chart) chart.destroy();
+    chart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels.map(l => l.split('-').reverse().slice(0,2).join('/')),
+            datasets: [{
+                data: temps,
+                borderColor: '#FFD700',
+                borderWidth: 3,
+                tension: 0.4,
+                fill: true,
+                backgroundColor: 'rgba(255,215,0,0.1)',
+                pointRadius: 4
+            }]
+        },
+        options: { 
+            responsive: true, 
+            maintainAspectRatio: false, 
+            plugins: { legend: { display: false } },
+            scales: { 
+                x: { ticks: { color: 'white' }, grid: { display: false } },
+                y: { ticks: { color: 'white' }, grid: { color: 'rgba(255,255,255,0.1)' } }
+            }
+        }
+    });
 }
 </script>
 </body>
