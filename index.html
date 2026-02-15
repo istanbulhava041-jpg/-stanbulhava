@@ -171,4 +171,19 @@ async function fetchData() {
         // Aktivite Puanlama
         document.getElementById("hali").innerText = (p < 20 && t > 8) ? "10/10" : "3/10";
         document.getElementById("mangal").innerText = (w < 20 && p < 10 && t > 15) ? "9/10" : "1/10";
-        doc
+        document.getElementById("balik").innerText = t < 16 ? "Harika" : "Zayıf";
+        document.getElementById("vapur").innerText = w > 45 ? "İptaller Olabilir" : "Seferler Normal";
+
+        // Tahminler
+        const fDiv = document.getElementById("forecast");
+        fDiv.innerHTML = "";
+        d.daily.time.slice(1, 6).forEach((time, i) => {
+            fDiv.innerHTML += `<div style="display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid rgba(255,255,255,0.05); font-size:14px;"><span>${new Date(time).toLocaleDateString('tr', {weekday:'short'})}</span><b>${Math.round(d.daily.temperature_2m_max[i+1])}° / ${Math.round(d.daily.temperature_2m_min[i+1])}°</b></div>`;
+        });
+    } catch(e) { 
+        document.getElementById("desc-val").innerText = "Bağlantı Kesildi!"; 
+    }
+}
+</script>
+</body>
+</html>
