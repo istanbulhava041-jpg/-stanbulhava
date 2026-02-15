@@ -161,4 +161,10 @@ async function fetchData() {
         const fDiv = document.getElementById("forecast");
         fDiv.innerHTML = "";
         d.daily.time.slice(0, 5).forEach((time, i) => {
-            fDiv.innerHTML += `<div style="display:flex; justify-content:s
+            fDiv.innerHTML += `<div style="display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid rgba(255,255,255,0.05); font-size:14px;"><span>${new Date(time).toLocaleDateString('tr', {weekday:'short'})}</span><b>${Math.round(d.daily.temperature_2m_max[i])}° / ${Math.round(d.daily.temperature_2m_min[i])}°</b></div>`;
+        });
+    } catch(e) { document.getElementById("desc-val").innerText = "Hata!"; }
+}
+</script>
+</body>
+</html>
