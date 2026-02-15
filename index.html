@@ -3,18 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>İSTANBUL HAVA v22.1</title>
+    <title>İSTANBUL HAVA SUPREME</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        :root { --bg: #020617; --card: rgba(15, 23, 42, 0.85); --accent: #38bdf8; --neon: #00f2ff; --warn: #f43f5e; --gold: #fbbf24; }
-        * { box-sizing: border-box; margin: 0; padding: 0; transition: all 0.4s ease; }
-        body { background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif; min-height: 100vh; display: flex; flex-direction: column; align-items: center; }
-        body.day { background: linear-gradient(180deg, #075985 0%, #020617 100%); }
-        body.night { background: linear-gradient(180deg, #020617 0%, #000000 100%); }
+        :root { --bg: #020617; --card: rgba(15, 23, 42, 0.8); --accent: #38bdf8; --neon: #00f2ff; --warn: #f43f5e; --gold: #fbbf24; }
+        * { box-sizing: border-box; margin: 0; padding: 0; transition: all 0.5s ease; }
         
-        .alert-bar { width: 100%; background: var(--warn); color: white; padding: 6px; text-align: center; font-size: 12px; font-weight: bold; overflow: hidden; }
-        .marquee { display: inline-block; animation: scroll 15s linear infinite; white-space: nowrap; }
-        @keyframes scroll { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
+        body { background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif; min-height: 100vh; display: flex; flex-direction: column; align-items: center; overflow-x: hidden; }
+        
+        /* Dinamik Arka Planlar */
+        .bg-sunny { background: linear-gradient(180deg, #0ea5e9 0%, #020617 100%); }
+        .bg-night { background: linear-gradient(180deg, #020617 0%, #000000 100%); }
+        .bg-cloudy { background: linear-gradient(180deg, #475569 0%, #020617 100%); }
+        .bg-rainy { background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%); }
 
         .header { width: 100%; display: flex; align-items: center; justify-content: space-between; padding: 15px; background: rgba(15, 23, 42, 0.9); border-bottom: 2px solid var(--neon); position: sticky; top: 0; z-index: 1000; }
         .main { width: 100%; max-width: 480px; padding: 15px; display: flex; flex-direction: column; gap: 15px; }
@@ -22,11 +23,14 @@
         
         .index-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
         .index-card { background: rgba(255,255,255,0.05); padding: 10px; border-radius: 12px; text-align: center; border: 1px solid rgba(56,189,248,0.1); }
-        .index-card small { font-size: 10px; opacity: 0.6; display: block; margin-bottom: 4px; }
+        .index-card small { font-size: 10px; opacity: 0.6; display: block; }
         .index-card b { color: var(--neon); font-size: 13px; }
 
-        #temp-val { font-size: 72px; font-weight: 900; margin: 5px 0; }
-        select { width: 100%; padding: 14px; border-radius: 12px; background: #1e293b; color: white; border: 1px solid var(--accent); font-size: 16px; appearance: none; text-align: center; }
+        .forecast-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .forecast-row:last-child { border: none; }
+
+        #temp-val { font-size: 75px; font-weight: 900; text-shadow: 0 0 20px rgba(0,242,255,0.3); }
+        select { width: 100%; padding: 15px; border-radius: 15px; background: #1e293b; color: white; border: 1px solid var(--accent); font-size: 16px; outline: none; }
         
         .sidebar { position: fixed; top: 0; left: -100%; width: 280px; height: 100%; background: #0f172a; z-index: 2000; padding: 25px; border-right: 2px solid var(--neon); }
         .sidebar.open { left: 0; }
@@ -35,17 +39,15 @@
 </head>
 <body id="bodyTag">
 
-<div class="alert-bar"><div class="marquee">⚠️ Duyuru: İstanbul genelinde rüzgar hızı takibi aktif. Deniz suyu sıcaklığı ortalama 12°C.</div></div>
-
 <div id="sidebar" class="sidebar">
     <button onclick="toggleMenu()" style="float:right; background:none; border:none; color:var(--warn); font-size:30px;">×</button>
-    <h2 style="color:var(--neon); margin: 20px 0;">MENÜ</h2>
+    <h2 style="color:var(--neon); margin: 20px 0;">İSTANBUL PRO</h2>
     <a href="https://uym.ibb.gov.tr/" target="_blank" class="sidebar-btn">🚗 Canlı Trafik</a>
     <a href="https://www.iski.gov.tr" target="_blank" class="sidebar-btn">💧 Baraj Doluluk</a>
     <a href="https://www.istanbuleczaciodasi.org.tr/nobetci-eczane" target="_blank" class="sidebar-btn">🏥 Nöbetçi Eczane</a>
     <div style="margin-top: 50px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px;">
         <small>İletişim:</small><br>
-        <b style="color:var(--accent); font-size:13px;">istanbulhava041@gmail.com</b>
+        <b style="color:var(--accent)">istanbulhava041@gmail.com</b>
     </div>
 </div>
 
@@ -63,20 +65,26 @@
     <div class="glass" style="text-align: center;">
         <div id="loc-name" style="font-size: 14px; opacity: 0.7; letter-spacing: 2px;">İSTANBUL</div>
         <div id="temp-val">--°</div>
-        <div id="desc-val" style="font-size: 18px; font-weight: bold; color: var(--neon);">YÜKLENİYOR...</div>
+        <div id="desc-val" style="font-size: 20px; font-weight: bold; color: var(--neon);">YÜKLENİYOR...</div>
     </div>
 
     <div class="index-grid">
+        <div class="index-card"><small>☔ YAĞIŞ</small><b id="rain-val">%--</b></div>
         <div class="index-card"><small>💨 RÜZGAR</small><b id="wind-val">--</b></div>
-        <div class="index-card"><small>🌊 DENİZ</small><b>12°C</b></div>
-        <div class="index-card"><small>☀️ UV</small><b>Düşük</b></div>
-        <div class="index-card"><small>💧 NEM</small><b id="hum-val">%--</b></div>
         <div class="index-card"><small>🌡️ HİSSEDİLEN</small><b id="feel-val">--°</b></div>
-        <div class="index-card"><small>🌫️ KALİTE</small><b style="color:#4ade80">İYİ</b></div>
+        <div class="index-card"><small>💧 NEM</small><b id="hum-val">%--</b></div>
+        <div class="index-card"><small>🌅 DOĞUŞ</small><b id="rise-val">--:--</b></div>
+        <div class="index-card"><small>🌇 BATIŞ</small><b id="set-val">--:--</b></div>
     </div>
 
     <div class="glass">
-        <canvas id="mainChart" style="height: 160px;"></canvas>
+        <p style="font-size: 12px; color: var(--accent); margin-bottom: 10px;">🕒 SAATLİK DEĞİŞİM</p>
+        <canvas id="mainChart" style="height: 150px;"></canvas>
+    </div>
+
+    <div class="glass">
+        <p style="font-size: 12px; color: var(--accent); margin-bottom: 15px;">📅 7 GÜNLÜK TAHMİN</p>
+        <div id="daily-forecast"></div>
     </div>
 </div>
 
@@ -85,11 +93,13 @@ const coords = {"Adalar":[40.87,29.13],"Arnavutköy":[41.18,28.74],"Ataşehir":[
 
 function toggleMenu() { document.getElementById('sidebar').classList.toggle('open'); }
 
-function updateClock() {
-    const now = new Date();
-    document.getElementById('clock').innerText = now.toLocaleTimeString('tr-TR', {hour:'2-digit', minute:'2-digit'});
-    const hour = now.getHours();
-    document.getElementById('bodyTag').className = (hour > 19 || hour < 7) ? 'night' : 'day';
+function updateUI(code, hour) {
+    const body = document.getElementById('bodyTag');
+    body.className = ''; 
+    if(hour > 19 || hour < 7) body.classList.add('bg-night');
+    else if(code > 50) body.classList.add('bg-rainy');
+    else if(code > 2) body.classList.add('bg-cloudy');
+    else body.classList.add('bg-sunny');
 }
 
 window.onload = () => {
@@ -97,8 +107,10 @@ window.onload = () => {
     Object.keys(coords).sort().forEach(i => s.add(new Option(i, i)));
     s.value = "Fatih";
     fetchData();
-    setInterval(updateClock, 1000);
-    updateClock();
+    setInterval(() => {
+        const now = new Date();
+        document.getElementById('clock').innerText = now.toLocaleTimeString('tr-TR', {hour:'2-digit', minute:'2-digit'});
+    }, 1000);
 };
 
 async function fetchData() {
@@ -107,18 +119,37 @@ async function fetchData() {
     document.getElementById("loc-name").innerText = ilce.toUpperCase();
 
     try {
-        const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m&hourly=temperature_2m&timezone=auto`);
+        const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,precipitation&hourly=temperature_2m&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,precipitation_probability_max&timezone=auto`);
         const data = await res.json();
 
+        // Güncel Veriler
         document.getElementById("temp-val").innerText = Math.round(data.current.temperature_2m) + "°";
         document.getElementById("hum-val").innerText = "%" + data.current.relative_humidity_2m;
         document.getElementById("feel-val").innerText = Math.round(data.current.apparent_temperature) + "°";
-        document.getElementById("wind-val").innerText = Math.round(data.current.wind_speed_10m) + " km/s";
+        document.getElementById("wind-val").innerText = Math.round(data.current.wind_speed_10m) + " km/h";
+        document.getElementById("rain-val").innerText = "%" + data.daily.precipitation_probability_max[0];
+        document.getElementById("rise-val").innerText = data.daily.sunrise[0].split('T')[1];
+        document.getElementById("set-val").innerText = data.daily.sunset[0].split('T')[1];
         
-        const codes = {0:"Açık", 1:"Açık", 2:"Az Bulutlu", 3:"Bulutlu", 45:"Sisli", 61:"Yağmurlu", 71:"Karlı"};
+        const codes = {0:"☀️ Açık", 1:"🌤️ Açık", 2:"⛅ Bulutlu", 3:"☁️ Kapalı", 45:"🌫️ Sisli", 61:"🌧️ Yağmurlu", 71:"❄️ Karlı", 95:"⚡ Fırtına"};
         document.getElementById("desc-val").innerText = (codes[data.current.weather_code] || "Açık").toUpperCase();
 
+        updateUI(data.current.weather_code, new Date().getHours());
         drawChart(data.hourly.temperature_2m.slice(0, 24));
+
+        // 7 Günlük Tahmin
+        const fDiv = document.getElementById("daily-forecast");
+        fDiv.innerHTML = "";
+        const days = ["Pazar", "Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma", "Cumartesi"];
+        for(let i=0; i<7; i++) {
+            const d = new Date(data.daily.time[i]);
+            fDiv.innerHTML += `
+                <div class="forecast-row">
+                    <span style="width:100px">${i==0 ? 'Bugün' : days[d.getDay()]}</span>
+                    <span style="font-size:20px">${codes[data.daily.weather_code[i]].split(' ')[0]}</span>
+                    <span style="width:80px; text-align:right"><b>${Math.round(data.daily.temperature_2m_max[i])}°</b> / <small>${Math.round(data.daily.temperature_2m_min[i])}°</small></span>
+                </div>`;
+        }
     } catch(e) { console.error("Hata!"); }
 }
 
@@ -132,7 +163,7 @@ function drawChart(temps) {
             labels: Array.from({length: 24}, (_, i) => i + ":00"),
             datasets: [{ data: temps, borderColor: '#00f2ff', tension: 0.4, fill: true, backgroundColor: 'rgba(0,242,255,0.05)', pointRadius: 0 }]
         },
-        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { display: false }, x: { ticks: { color: '#64748b', font: { size: 10 } } } } }
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { display: false }, x: { ticks: { color: 'rgba(255,255,255,0.5)', font: { size: 10 } } } } }
     });
 }
 </script>
